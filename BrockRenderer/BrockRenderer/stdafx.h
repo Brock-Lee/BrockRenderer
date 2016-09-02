@@ -34,11 +34,12 @@
 
 #include <Windows.h>
 
-#include "MathUtils.h"
+#include "Core/MathUtils.h"
 #include "Core/Vec2.h"
 #include "Core/Vec3.h"
 #include "Core/Vec4.h"
 #include "Core/Mat4.h"
+#include "Core/Triangle.h"
 #include "Window/WinBase.h"
 #include "Window/WinApp.h"
 #include "Window/events.h"

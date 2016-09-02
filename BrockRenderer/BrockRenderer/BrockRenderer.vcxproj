@@ -12,10 +12,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Mat4.h" />
+    <ClInclude Include="Core\MathUtils.h" />
+    <ClInclude Include="Core\Triangle.h" />
     <ClInclude Include="Core\Vec2.h" />
     <ClInclude Include="Core\Vec3.h" />
     <ClInclude Include="Core\Vec4.h" />
-    <ClInclude Include="MathUtils.h" />
     <ClInclude Include="Renderer\Context.h" />
     <ClInclude Include="Scene\Camera.h" />
     <ClInclude Include="Scene\Scene.h" />

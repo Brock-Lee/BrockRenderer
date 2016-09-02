@@ -7,7 +7,7 @@ void Scene::AddPoint( const vec3 &p )
 	m_points.push_back(p);
 }
 
-void Scene::AddTriangles(const string texture)
+void Scene::AddTriangles(const std::string texture,const Triangle &triangle)
 {
-	m_lines.push_back(line);
+	m_triangles[texture].push_back(triangle);
 }

@@ -27,16 +27,7 @@ void Context::DrawPoints()
 
 void Context::DrawLines()
 {
-	for(int i=0; i<g_scene->m_lines.size(); i++)
-	{
-		vec3 &p1 = g_scene->m_lines[i].first;
-		vec3 &p2 = g_scene->m_lines[i].second;
-		vec4 pProjCoord = vec4(p,1.0) * g_camera->m_viewMatrix * g_camera->m_projMatrix;
-		for(int i=0; i<3; i++)
-			pProjCoord[i] /= pProjCoord.w;
-		if(pProjCoord.x >=-1.0 && pProjCoord.x<=1.0 && pProjCoord.y >=-1.0 && pProjCoord.y<=1.0 && pProjCoord.z>=0.0 && pProjCoord.z<=1.0)
-			FillPixel(vec2(pProjCoord.x, pProjCoord.y), vec4(1.0), pProjCoord.z);
-	}
+
 }
 
 

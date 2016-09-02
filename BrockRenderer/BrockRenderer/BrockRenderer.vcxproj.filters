@@ -82,7 +82,10 @@
     <ClInclude Include="Renderer\Context.h">
       <Filter>Renderer\Header</Filter>
     </ClInclude>
-    <ClInclude Include="MathUtils.h">
+    <ClInclude Include="Core\Triangle.h">
+      <Filter>Core\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\MathUtils.h">
       <Filter>Core\Header</Filter>
     </ClInclude>
   </ItemGroup>
