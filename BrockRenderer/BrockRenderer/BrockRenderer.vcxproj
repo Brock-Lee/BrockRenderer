@@ -11,17 +11,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Mat4.h" />
+    <ClInclude Include="Core\Mat4.h" />
+    <ClInclude Include="Core\Vec2.h" />
+    <ClInclude Include="Core\Vec3.h" />
+    <ClInclude Include="Core\Vec4.h" />
+    <ClInclude Include="MathUtils.h" />
+    <ClInclude Include="Renderer\Context.h" />
+    <ClInclude Include="Scene\Camera.h" />
+    <ClInclude Include="Scene\Scene.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Vec2.h" />
-    <ClInclude Include="Vec3.h" />
-    <ClInclude Include="Vec4.h" />
     <ClInclude Include="Window\WinBase.h" />
     <ClInclude Include="Window\WinApp.h" />
     <ClInclude Include="Window\events.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App\main.cpp" />
+    <ClCompile Include="Renderer\Context.cpp" />
+    <ClCompile Include="Scene\Camera.cpp" />
+    <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="Window\WinBase.cpp" />
     <ClCompile Include="Window\WinApp.cpp" />

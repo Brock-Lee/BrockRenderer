@@ -22,7 +22,10 @@ public:
         : x(0), y(0), z(0), w(0)
     {
     }
-
+	_TVector4(const T v)
+		: x(v), y(v), z(v),w(v)
+	{
+	}
     template <class T2>
     _TVector4(const _TVector4<T2>& vecCopy)
     {
@@ -38,7 +41,10 @@ public:
         : x(fX), y(fY), z(fZ), w(fW)
     {
     }
-
+	_TVector4(const _TVector3<T> &v, T ww)
+		: x(v.x), y(v.y), z(v.z), w(ww)
+	{
+	}
     operator  T *()
     {
         return m_fVec;

@@ -15,7 +15,10 @@ public:
         : x(0), y(0), z(0)
     {
     }
-
+	_TVector3(const T v)
+		: x(v), y(v), z(v)
+	{
+	}
     template <class T2>
 	_TVector3(const _TVector3<T2>& vecCopy)
 	{

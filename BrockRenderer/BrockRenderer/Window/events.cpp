@@ -1,7 +1,5 @@
 #include "stdafx.h"
 
-#include "events.h"
-
 namespace Window
 {
 

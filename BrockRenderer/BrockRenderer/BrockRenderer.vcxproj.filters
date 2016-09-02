@@ -29,6 +29,24 @@
     <Filter Include="Scene">
       <UniqueIdentifier>{c1c9e2e9-267a-424b-82d8-7bfb5b41f109}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Header">
+      <UniqueIdentifier>{487f503d-9597-45ac-8520-a789579372d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Source">
+      <UniqueIdentifier>{067b76aa-b4d0-4edb-85b9-ba46ac220f10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\Header">
+      <UniqueIdentifier>{c514dc00-123e-42b0-b96b-96e98cfd5a20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene\Source">
+      <UniqueIdentifier>{11cf7cb5-4cdf-4072-b0d1-7d5d26c1e66d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Header">
+      <UniqueIdentifier>{90e83e0e-0f31-4012-b9a0-7aba281d4728}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Source">
+      <UniqueIdentifier>{c21d19e7-12a4-49d6-aedf-116c891e7b4f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window\events.h">
@@ -43,17 +61,29 @@
     <ClInclude Include="Window\WinApp.h">
       <Filter>Window\Header</Filter>
     </ClInclude>
-    <ClInclude Include="Vec2.h">
-      <Filter>Core</Filter>
+    <ClInclude Include="Core\Mat4.h">
+      <Filter>Core\Header</Filter>
     </ClInclude>
-    <ClInclude Include="Vec3.h">
-      <Filter>Core</Filter>
+    <ClInclude Include="Core\Vec4.h">
+      <Filter>Core\Header</Filter>
     </ClInclude>
-    <ClInclude Include="Vec4.h">
-      <Filter>Core</Filter>
+    <ClInclude Include="Core\Vec2.h">
+      <Filter>Core\Header</Filter>
     </ClInclude>
-    <ClInclude Include="Mat4.h">
-      <Filter>Core</Filter>
+    <ClInclude Include="Core\Vec3.h">
+      <Filter>Core\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Scene.h">
+      <Filter>Scene\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Camera.h">
+      <Filter>Scene\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Context.h">
+      <Filter>Renderer\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="MathUtils.h">
+      <Filter>Core\Header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -71,6 +101,15 @@
     </ClCompile>
     <ClCompile Include="Window\WinApp.cpp">
       <Filter>Window\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Scene.cpp">
+      <Filter>Scene\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Camera.cpp">
+      <Filter>Scene\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Context.cpp">
+      <Filter>Renderer\Source</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

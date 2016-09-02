@@ -37,7 +37,7 @@ LRESULT WINAPI WinApp::handleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		
 		
         return 0;
-
+	
     case WM_MOUSEWHEEL:
 
         return 0;
@@ -56,8 +56,12 @@ LRESULT WINAPI WinApp::handleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 WinApp::WinApp(int argc, const char **argv)
 {
-    //m_clientController = std::make_shared<base::Controller>(argc, argv);
-	m_vp = new Window::WindowsViewport(1000,1000);
+    
+	//m_clientController = std::make_shared<base::Controller>(argc, argv);
+	g_camera = new Camera;
+	g_scene = new Scene();
+	g_context = new Context();
+	m_vp = new Window::WindowsViewport( Context::fixedViewportX, Context::fixedViewportY);
    // m_clientController->createViewport<WindowsViewport>();
 }
 WinApp::~WinApp()
@@ -95,7 +99,8 @@ int WinApp::run()
 
 }
 
-unsigned char pixels[1000][1000][4];
+bool cameraMove = false;
+bool MOVING = false;
 void WinApp::onMouseEvent( const MouseEvent &ev )
 {
 	static int yaw, pitch;
@@ -103,23 +108,29 @@ void WinApp::onMouseEvent( const MouseEvent &ev )
 
 	if (ev.isLeftPressed())
 	{
-		yaw -= prevx - ev.x;            // inverted
-		pitch -= prevy - ev.y;
+		yaw = prevx - ev.x;            // inverted
+		pitch = prevy - ev.y;
 
-		if (abs(yaw) > 360) yaw %= 360;
-		if (abs(pitch) > 360) pitch %= 360;
-
+		if(cameraMove && MOVING)
+		{
+			g_context->Clear();
+			g_camera->m_viewMatrix = g_camera->m_viewMatrix * mat4::GetRotateY(DegToRad(-yaw/5.0))* mat4::GetRotateX(DegToRad(pitch/5.0));
+		}
+		MOVING = true;
 		// m_playerCamera->setEulerAnglesRotation(yaw, pitch, 0.f);
 	}
-
+	else
+	{
+		MOVING = false;
+		return;
+	}
 	prevx = ev.x;
 	prevy = ev.y;
 	//	memset(pixels,0, sizeof(pixels));
-	pixels[ev.x ][ev.y][0] = 255;
-	pixels[ev.x ][ev.y][1] = 0;
-	pixels[ev.x ][ev.y][2] = 0;
-	pixels[ev.x ][ev.y][3] = 255;
-	m_vp->flush(&pixels[0][0][0]);
+	//g_context->Clear();
+	if(!cameraMove)g_scene->AddPoint(vec3(float(ev.x)/Context::fixedViewportX*2.0-1.0, float(ev.y)/Context::fixedViewportY*2.0-1.0, 0.5));
+	g_context->Draw();
+	m_vp->flush(&g_context->m_pixels[0][0][0]);
 }
 
 void WinApp::onKeyPressed( const KeyboardEvent &ev )
@@ -150,6 +161,7 @@ void WinApp::onKeyPressed( const KeyboardEvent &ev )
 	{
 		// ds = m_playerCamera->getRightVector() * velocity;
 		//        position -= ds;
+		cameraMove = !cameraMove;
 	}
 	else
 		return;
