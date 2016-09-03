@@ -3,11 +3,11 @@
 Context* g_context;
 Context::Context():m_lineMode(true),m_bufferFlag(0)
 {
-	m_vp = new Window::WindowsViewport( fixedViewportX, fixedViewportY);
 	memset(m_pixels, 0, sizeof(m_pixels));
 	for(int i=0; i<fixedViewportY; i++)
 		for(int j=0; j<fixedViewportX; j++)
 			m_depth[i][j] = 1.0;
+	m_vp = new Window::WindowsViewport( fixedViewportX, fixedViewportY);
 }
 
 void Context::Render()

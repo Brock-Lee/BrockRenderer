@@ -59,9 +59,8 @@ WinApp::WinApp(int argc, const char **argv)
     
 	//m_clientController = std::make_shared<base::Controller>(argc, argv);
 	g_camera = new Camera;
-	g_scene = new Scene();
 	g_context = new Context();
-	
+	g_context->Render();
    // m_clientController->createViewport<WindowsViewport>();
 }
 WinApp::~WinApp()
