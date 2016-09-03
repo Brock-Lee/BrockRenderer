@@ -130,7 +130,8 @@ void WinApp::onMouseEvent( const MouseEvent &ev )
 	//g_context->Clear();
 	if(!cameraMove)g_scene->AddPoint(vec3(float(ev.x)/Context::fixedViewportX*2.0-1.0, float(ev.y)/Context::fixedViewportY*2.0-1.0, 0.5));
 	g_context->Draw();
-	m_vp->flush(&g_context->m_pixels[0][0][0]);
+	m_vp->flush(&g_context->m_pixels[g_context->m_bufferFlag][0][0][0]);
+	g_context->m_bufferFlag ^= 1;
 }
 
 void WinApp::onKeyPressed( const KeyboardEvent &ev )

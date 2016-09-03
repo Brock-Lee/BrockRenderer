@@ -3,7 +3,7 @@
 Camera::Camera()
 {
 	LookAt(vec3(0,0,0), vec3(0,0,1), vec3(0,1,0));
-	Perspective(1, -1, 1, -1, 0.01, 10);
+	Perspective(PAI*0.9, 1, 0.1, 10);
 }
 
 void Camera::LookAt( vec3 pos, vec3 dir, vec3 up )
@@ -29,7 +29,7 @@ void Camera::Perspective( float fov, float aspect, float nearz, float farz )
 	m_farZ = farz;
 	
 	m_projMatrix.Zero();
-	m_projMatrix[0][0] = 1 / (tan(fov * 0.5f) *aspect) ;
+	m_projMatrix[0][0] = 1 / (tan(fov * 0.5f) * aspect) ;
 	m_projMatrix[1][1] = 1 / tan(fov * 0.5f) ;
 	m_projMatrix[2][2] = farz / (farz - nearz) ;
 	m_projMatrix[2][3] = 1.0f; 
