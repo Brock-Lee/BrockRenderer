@@ -22,7 +22,6 @@ class WinApp : public WinBase
 {
 protected:
     virtual void update(float dt);
-	Window::WindowsViewport* m_vp;
 public:
     WinApp(int argc, const char **argv);
     virtual ~WinApp();

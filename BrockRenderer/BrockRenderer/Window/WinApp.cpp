@@ -61,7 +61,7 @@ WinApp::WinApp(int argc, const char **argv)
 	g_camera = new Camera;
 	g_scene = new Scene();
 	g_context = new Context();
-	m_vp = new Window::WindowsViewport( Context::fixedViewportX, Context::fixedViewportY);
+	
    // m_clientController->createViewport<WindowsViewport>();
 }
 WinApp::~WinApp()
@@ -99,7 +99,6 @@ int WinApp::run()
 
 }
 
-bool cameraMove = false;
 bool MOVING = false;
 void WinApp::onMouseEvent( const MouseEvent &ev )
 {
@@ -111,9 +110,8 @@ void WinApp::onMouseEvent( const MouseEvent &ev )
 		yaw = prevx - ev.x;            // inverted
 		pitch = prevy - ev.y;
 
-		if(cameraMove && MOVING)
+		if(MOVING)
 		{
-			g_context->Clear();
 			g_camera->m_viewMatrix = g_camera->m_viewMatrix * mat4::GetRotateY(DegToRad(-yaw/5.0))* mat4::GetRotateX(DegToRad(pitch/5.0));
 		}
 		MOVING = true;
@@ -126,17 +124,13 @@ void WinApp::onMouseEvent( const MouseEvent &ev )
 	}
 	prevx = ev.x;
 	prevy = ev.y;
-	//	memset(pixels,0, sizeof(pixels));
-	//g_context->Clear();
-	if(!cameraMove)g_scene->AddPoint(vec3(float(ev.x)/Context::fixedViewportX*2.0-1.0, float(ev.y)/Context::fixedViewportY*2.0-1.0, 0.5));
-	g_context->Draw();
-	m_vp->flush(&g_context->m_pixels[g_context->m_bufferFlag][0][0][0]);
-	g_context->m_bufferFlag ^= 1;
+
+	g_context->Render();
 }
 
 void WinApp::onKeyPressed( const KeyboardEvent &ev )
 {
-	static const float velocity = 100.f;
+	static const float velocity = 0.01f;
 	//    static math::vec3 ds;
 	//    static math::vec3 position;
 
@@ -145,8 +139,9 @@ void WinApp::onKeyPressed( const KeyboardEvent &ev )
 
 	if (ev.keycode() == Window::KEY_KEY_W)
 	{
-		//ds = m_playerCamera->getDirection() * velocity;
-		//        position += ds;
+		g_camera->Move(g_camera->GetZ()*velocity);
+
+		g_context->Render();
 	}
 	else if (ev.keycode() == Window::KEY_KEY_S)
 	{
@@ -162,7 +157,6 @@ void WinApp::onKeyPressed( const KeyboardEvent &ev )
 	{
 		// ds = m_playerCamera->getRightVector() * velocity;
 		//        position -= ds;
-		cameraMove = !cameraMove;
 	}
 	else
 		return;
