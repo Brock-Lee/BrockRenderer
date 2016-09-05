@@ -1,5 +1,5 @@
 #include "stdafx.h"
-
+#include <fstream>
 namespace Window
 {
 
@@ -54,7 +54,7 @@ LRESULT WINAPI WinApp::handleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
     }
 }
 
-WinApp::WinApp(int argc, const char **argv)
+WinApp::WinApp()
 {
     
 	//m_clientController = std::make_shared<base::Controller>(argc, argv);
@@ -146,6 +146,9 @@ void WinApp::onKeyPressed( const KeyboardEvent &ev )
 	{
 		//ds = m_playerCamera->getDirection() * velocity;
 		//       position -= ds;
+		g_camera->Move(g_camera->GetZ()*-velocity);
+
+		g_context->Render();
 	}
 	else if (ev.keycode() == Window::KEY_KEY_D)
 	{
@@ -224,7 +227,7 @@ WindowsViewport::WindowsViewport(int width, int height):m_width(width), m_height
     wcex.hInstance = GetModuleHandle(0);//app->getAppInstance();
     wcex.lpfnWndProc = (WNDPROC)WndProc;
 
-	assert(RegisterClassEx(&wcex));
+	RegisterClassEx(&wcex);
 
     RECT viewportRect;
     viewportRect.left = 0;
@@ -247,7 +250,10 @@ WindowsViewport::WindowsViewport(int width, int height):m_width(width), m_height
 
     if (!m_hWnd)
     {
-		auto e = GetLastError();
+		DWORD e = GetLastError();
+		std::ofstream LOG("error.log");
+		LOG<< e ;
+		LOG.close();
         UnregisterClass(className, GetModuleHandle(0));
     }
 

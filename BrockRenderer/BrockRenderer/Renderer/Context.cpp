@@ -1,7 +1,8 @@
 #include "stdafx.h"
 
+using namespace std;
 Context* g_context;
-Context::Context():m_lineMode(true),m_bufferFlag(0)
+Context::Context():m_lineMode(false),m_bufferFlag(0)
 {
 	memset(m_pixels, 0, sizeof(m_pixels));
 	for(int i=0; i<fixedViewportY; i++)
@@ -145,6 +146,32 @@ void Context::FillLine(float xNDC0, float yNDC0, float zNDC0, float xNDC1, float
 	}
 
 }
+
+void Context::FillLine( const VSOUT& a, const VSOUT& b )
+{
+	int x0 = NDC2ScreenX(a.ndc.x);
+	int y0 = NDC2ScreenY(a.ndc.y);
+	int x1 = NDC2ScreenX(b.ndc.x);
+	int y1 = NDC2ScreenY(a.ndc.y);
+	int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
+	int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1; 
+	float zNDC0 = a.ndc.z;
+
+	int err = (dx>dy ? dx : -dy)/2, e2;
+
+	for(;;){
+		VSOUT temp = PerspectiveInterp(a, b, (x0*2.0/fixedViewportX -1.0 -a.ndc.x)/ NoZero(b.ndc.x - a.ndc.x));
+		vec2 uv = temp.uvdw * temp.w;
+		bool white = ( abs(int(floor(uv.y* 10))%2) == abs(int(floor( uv.x* 10))%2));
+		FillPixel(x0,y0,//vec4(uv.y + 0.9), temp.w);
+			white?vec4(1.0):vec4(0.0), temp.w);
+		if (x0==x1 && y0==y1) break;
+		e2 = err;
+		if (e2 >-dx) { err -= dy; x0 += sx; }
+		if (e2 < dy) { err += dx; y0 += sy; }
+	}
+}
+
 void Context::Clear()
 {
 	memset(m_pixels[m_bufferFlag], 0, sizeof(m_pixels)/2);
@@ -193,11 +220,87 @@ void Context::DrawTriangles()
 		{
 			for(int t=0; t<iter->second.size(); t++)
 				for(int i=0; i<3; i++)
-					DrawLine( iter->second.at(t).p[i], iter->second.at(t).p[(i+1)%3]);
+					DrawLine( iter->second.at(t).v[i].position, iter->second.at(t).v[(i+1)%3].position);
 		}
 	}
 	else
 	{
-
+		auto iter = g_scene->m_triangles.begin();
+		for(; iter!=g_scene->m_triangles.end(); iter++)
+		{
+			for(int t=0; t<iter->second.size(); t++)
+				DrawTriangle(iter->second.at(t));
+		}
+		/*
+		VertexProcess(Triangle * vertexBuffer, VSOUT* vsout);
+		TriangleRasterization(VSOUT* vsout);
+		FragmentProcess();*/
 	}
+}
+
+void Context::DrawTriangle( const Triangle& triangle )
+{
+	vector<VSOUT> vertices(3);
+	for(int i=0; i<3; i++)
+	{
+		vec4 projCoord = vec4(triangle.v[i].position,1.0) * g_camera->m_viewMatrix * g_camera->m_projMatrix;
+		vertices[i].ndc = vec3((float*)&projCoord) / projCoord.w;
+		vertices[i].w = projCoord.w;
+		vertices[i].uvdw = triangle.v[i].uv/ projCoord.w;
+		vertices[i].normaldw = triangle.v[i].normal/ projCoord.w;
+	}
+
+	//TODO:: Backface Clipping
+	//TODO:: NearPlane Clipping
+	sort(vertices.begin(), vertices.end(),
+		[](const VSOUT &a, const VSOUT &b){ return a.ndc.y > b.ndc.y;}
+		);
+	if(vertices[0].ndc.y == vertices[2].ndc.y)  // Ë®Æ½Ïß
+		return;
+	vector<VSOUT> verticesTop = vertices;
+	verticesTop[2] = PerspectiveInterp(vertices[0], vertices[2], (vertices[1].ndc.y-vertices[0].ndc.y)/(vertices[2].ndc.y-vertices[0].ndc.y));
+	DrawTopTriangle(verticesTop);
+
+	vector<VSOUT> &verticesBottom = verticesTop;
+	verticesBottom[0] = vertices[2];
+	DrawBottomTriangle(verticesBottom);
+}
+
+void Context::DrawTopTriangle( const std::vector<VSOUT> &triangle )
+{
+	//TODO:: precision details
+	if(triangle[1].ndc.y - triangle[0].ndc.y == 0.0)
+		return;
+	vec2i screenC[3];
+	for(int i=0; i<3; i++)
+		screenC[i] = vec2i(NDC2ScreenX(triangle[i].ndc.x), NDC2ScreenY(triangle[i].ndc.y));
+	int y0 = screenC[0].y;
+	float t = ( (y0 + 0.5)*2.0/fixedViewportY-1.0-triangle[0].ndc.y) / NoZero(triangle[1].ndc.y - triangle[0].ndc.y);
+	float t2 = ( (screenC[1].y + 0.5)*2.0/fixedViewportY-1.0-triangle[0].ndc.y) / NoZero(triangle[1].ndc.y - triangle[0].ndc.y);
+	float dt = (t2-t)/ NoZero(abs(screenC[1].y-y0));
+	while(y0 >= screenC[1].y)
+	{
+		VSOUT a = PerspectiveInterp(triangle[0], triangle[1], t);
+		VSOUT b = PerspectiveInterp(triangle[0], triangle[2], t);
+		//FillLine(a.ndc.x, a.ndc.y, a.ndc.z, b.ndc.x, b.ndc.y, b.ndc.z);
+		FillLine(a,b);
+		y0 --;
+		t += dt;
+	}
+	/*
+	static float dy = 2.0/fixedViewportY;
+	float dt = dy/NoZero(abs(triangle[1].ndc.y - triangle[0].ndc.y)) ;
+	float t = 0.0;
+	while(t<=1.0)
+	{
+		VSOUT a = PerspectiveInterp(triangle[0], triangle[1], t);
+		VSOUT b = PerspectiveInterp(triangle[0], triangle[2], t);
+		FillLine(a.ndc.x, a.ndc.y, a.ndc.z, b.ndc.x, b.ndc.y, b.ndc.z);
+		t += dt;
+	}*/
+}
+
+void Context::DrawBottomTriangle( const std::vector<VSOUT> & triangle )
+{
+
 }

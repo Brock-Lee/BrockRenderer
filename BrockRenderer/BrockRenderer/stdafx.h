@@ -45,6 +45,7 @@
 #include "Window/events.h"
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
+#include "Renderer/VSOUT.h"
 #include "Renderer/Context.h"
 
 

@@ -27,7 +27,7 @@ inline float DegToRad(float deg)
 }
 
 template <typename T>
-T Interpolate(T a, T b, float factor)
+T Interpolate(const T &a, const T & b, float factor)
 {
 	return a*(1-factor) + b*factor;
 }
@@ -59,4 +59,15 @@ inline OutCode ComputeOutCode(float x, float y, float xmin=-1, float xmax=1, flo
 		code |= TOP;
 
 	return code;
+}
+
+inline float NoZero(float a)
+{
+	return (a>=0.0)?max(a,0.00000001): min(a, -0.00000001);
+}
+
+template <typename T>
+inline T PerspectiveInterp(T a, T b, float t)
+{
+	return 1.0/(1.0/a * (1-t)+ 1.0/b*t);
 }

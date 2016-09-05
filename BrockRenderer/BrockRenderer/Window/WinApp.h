@@ -23,7 +23,7 @@ class WinApp : public WinBase
 protected:
     virtual void update(float dt);
 public:
-    WinApp(int argc, const char **argv);
+    WinApp();
     virtual ~WinApp();
 
     virtual LRESULT WINAPI handleMessage(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);

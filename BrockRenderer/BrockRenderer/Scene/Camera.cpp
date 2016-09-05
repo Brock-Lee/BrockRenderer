@@ -3,7 +3,7 @@
 Camera::Camera()
 {
 	LookAt(vec3(0,0,0), vec3(0,0,1), vec3(0,1,0));
-	Perspective(PAI*0.6, 1, 0.1, 10);
+	Perspective(PAI*0.8, 1, 0.1, 100);
 }
 
 void Camera::LookAt( vec3 pos, vec3 dir, vec3 up )

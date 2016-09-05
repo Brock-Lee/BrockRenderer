@@ -38,7 +38,7 @@ public:
 	}
 
 	_TVector2 operator+ (const _TVector2& vec) const {
-        return( _TVector2((vec[0] + x), (vec[1] + y)) );
+        return( _TVector2<T>((vec.x + x), (vec.y + y)) );
     }
 
     _TVector2 operator- (const _TVector2& vec) const {
