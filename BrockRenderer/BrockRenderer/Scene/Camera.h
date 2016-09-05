@@ -11,8 +11,10 @@ public:
 	void Perspective(float fov, float aspect, float nearz, float farz);
 	void Move(vec3 v);
 	vec3 GetZ();
+	vec3 GetPosition();
 	//float m_yaw, m_pitch, m_roll;
 	//! Field of view. Default is 90 grad.
+	vec3 m_position;
 	float m_fov, m_aspect;
 	//! Near Z-clipping plane position.
 	float m_nearZ;

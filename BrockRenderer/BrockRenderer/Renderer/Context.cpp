@@ -147,28 +147,22 @@ void Context::FillLine(float xNDC0, float yNDC0, float zNDC0, float xNDC1, float
 
 }
 
-void Context::FillLine( const VSOUT& a, const VSOUT& b )
+void Context::ScanLine( const VSOUT& a, const VSOUT& b )
 {
-	int x0 = NDC2ScreenX(a.ndc.x);
-	int y0 = NDC2ScreenY(a.ndc.y);
-	int x1 = NDC2ScreenX(b.ndc.x);
-	int y1 = NDC2ScreenY(a.ndc.y);
+	int y0 = NDC2ScreenY(a.ndc.y); 
+	if(y0<0 || y0>=fixedViewportY) return;
+	int x0 = max(NDC2ScreenX(a.ndc.x), 0);
+	int x1 = min(NDC2ScreenX(b.ndc.x), fixedViewportX-1);
 	int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
-	int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1; 
-	float zNDC0 = a.ndc.z;
 
-	int err = (dx>dy ? dx : -dy)/2, e2;
 
 	for(;;){
 		VSOUT temp = PerspectiveInterp(a, b, (x0*2.0/fixedViewportX -1.0 -a.ndc.x)/ NoZero(b.ndc.x - a.ndc.x));
-		vec2 uv = temp.uvdw * temp.w;
-		bool white = ( abs(int(floor(uv.y* 10))%2) == abs(int(floor( uv.x* 10))%2));
-		FillPixel(x0,y0,//vec4(uv.y + 0.9), temp.w);
-			white?vec4(1.0):vec4(0.0), temp.w);
-		if (x0==x1 && y0==y1) break;
-		e2 = err;
-		if (e2 >-dx) { err -= dy; x0 += sx; }
-		if (e2 < dy) { err += dx; y0 += sy; }
+
+		FillPixel(x0,y0,FragmentShading(PSIN(temp.normaldw * temp.w, temp.uvdw*temp.w, temp.viewPositiondw*temp.w)), temp.ndc.z);
+			//white?vec4(1.0):vec4(0.0), temp.w);
+		if (x0==x1) break;
+		x0 += sx;
 	}
 }
 
@@ -238,6 +232,15 @@ void Context::DrawTriangles()
 	}
 }
 
+PSOUT Context::FragmentShading(PSIN fragment)
+{
+	vec3 diffuse = fragment.normal.Dot(g_scene->sun_dir) * 1.0;
+	static vec3 ambient(0.2);
+	vec3 midRay = ((fragment.viewPosition*-1.0).Normalize() + g_scene->sun_dir).Normalize();
+	vec3 specular = vec3(pow( double(midRay.Dot(fragment.normal)), 400.0)) *0.0;
+	return vec4(diffuse + ambient + specular, 1.0);
+}
+
 void Context::DrawTriangle( const Triangle& triangle )
 {
 	vector<VSOUT> vertices(3);
@@ -248,6 +251,7 @@ void Context::DrawTriangle( const Triangle& triangle )
 		vertices[i].w = projCoord.w;
 		vertices[i].uvdw = triangle.v[i].uv/ projCoord.w;
 		vertices[i].normaldw = triangle.v[i].normal/ projCoord.w;
+		vertices[i].viewPositiondw = triangle.v[i].position - g_camera->GetPosition() / projCoord.w;
 	}
 
 	//TODO:: Backface Clipping
@@ -259,14 +263,14 @@ void Context::DrawTriangle( const Triangle& triangle )
 		return;
 	vector<VSOUT> verticesTop = vertices;
 	verticesTop[2] = PerspectiveInterp(vertices[0], vertices[2], (vertices[1].ndc.y-vertices[0].ndc.y)/(vertices[2].ndc.y-vertices[0].ndc.y));
-	DrawTopTriangle(verticesTop);
+	DrawFlatTriangle(verticesTop, 1);
 
 	vector<VSOUT> &verticesBottom = verticesTop;
 	verticesBottom[0] = vertices[2];
-	DrawBottomTriangle(verticesBottom);
+	DrawFlatTriangle(verticesBottom, -1);
 }
 
-void Context::DrawTopTriangle( const std::vector<VSOUT> &triangle )
+void Context::DrawFlatTriangle( const std::vector<VSOUT> &triangle, int dir)
 {
 	//TODO:: precision details
 	if(triangle[1].ndc.y - triangle[0].ndc.y == 0.0)
@@ -277,30 +281,20 @@ void Context::DrawTopTriangle( const std::vector<VSOUT> &triangle )
 	int y0 = screenC[0].y;
 	float t = ( (y0 + 0.5)*2.0/fixedViewportY-1.0-triangle[0].ndc.y) / NoZero(triangle[1].ndc.y - triangle[0].ndc.y);
 	float t2 = ( (screenC[1].y + 0.5)*2.0/fixedViewportY-1.0-triangle[0].ndc.y) / NoZero(triangle[1].ndc.y - triangle[0].ndc.y);
+	t2 = min(1.0, t2);
 	float dt = (t2-t)/ NoZero(abs(screenC[1].y-y0));
-	while(y0 >= screenC[1].y)
+	while(true)
 	{
-		VSOUT a = PerspectiveInterp(triangle[0], triangle[1], t);
-		VSOUT b = PerspectiveInterp(triangle[0], triangle[2], t);
-		//FillLine(a.ndc.x, a.ndc.y, a.ndc.z, b.ndc.x, b.ndc.y, b.ndc.z);
-		FillLine(a,b);
-		y0 --;
+		if(t>=0.0 && t<=1.0)
+		{
+			VSOUT a = PerspectiveInterp(triangle[0], triangle[1], t);
+			VSOUT b = PerspectiveInterp(triangle[0], triangle[2], t);
+			ScanLine(a,b);
+		}
+		if(y0 == screenC[1].y)
+			return;
+		y0 -= dir;
 		t += dt;
+
 	}
-	/*
-	static float dy = 2.0/fixedViewportY;
-	float dt = dy/NoZero(abs(triangle[1].ndc.y - triangle[0].ndc.y)) ;
-	float t = 0.0;
-	while(t<=1.0)
-	{
-		VSOUT a = PerspectiveInterp(triangle[0], triangle[1], t);
-		VSOUT b = PerspectiveInterp(triangle[0], triangle[2], t);
-		FillLine(a.ndc.x, a.ndc.y, a.ndc.z, b.ndc.x, b.ndc.y, b.ndc.z);
-		t += dt;
-	}*/
-}
-
-void Context::DrawBottomTriangle( const std::vector<VSOUT> & triangle )
-{
-
 }
