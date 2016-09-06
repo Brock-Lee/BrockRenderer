@@ -19,7 +19,7 @@
     <ClInclude Include="Core\Vec4.h" />
     <ClInclude Include="Renderer\Context.h" />
     <ClInclude Include="Renderer\Texture.h" />
-    <ClInclude Include="Renderer\VSOUT.h" />
+    <ClInclude Include="Renderer\ShadingData.h" />
     <ClInclude Include="Scene\Camera.h" />
     <ClInclude Include="Scene\Scene.h" />
     <ClInclude Include="stdafx.h" />
@@ -85,10 +85,10 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>FreeImaged.lib;FreeImagePlus.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp.lib;FreeImaged.lib;FreeImagePlus.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY $(SolutionDir)Data $(OutDir) /D /E /I /F /K /Y
+      <Command>XCOPY $(SolutionDir)Data $(OutDir)Data /D /E /I /F /K /Y
 XCOPY $(ProjectDir)\ThirdParty\Win32Debug\*.dll $(OutDir) /D /E /I /F /K /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -108,10 +108,10 @@ XCOPY $(ProjectDir)\ThirdParty\Win32Debug\*.dll $(OutDir) /D /E /I /F /K /Y</Com
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>FreeImage.lib;FreeImagePlus.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp.lib;FreeImage.lib;FreeImagePlus.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY $(SolutionDir)Data $(OutDir) /D /E /I /F /K /Y
+      <Command>XCOPY $(SolutionDir)Data $(OutDir)Data /D /E /I /F /K /Y
 XCOPY $(ProjectDir)\ThirdParty\Win32Release\*.dll $(OutDir) /D /E /I /F /K /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

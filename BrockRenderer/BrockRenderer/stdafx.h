@@ -46,7 +46,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
 #include "Renderer/Texture.h"
-#include "Renderer/VSOUT.h"
+#include "Renderer/ShadingData.h"
 #include "Renderer/Context.h"
 
 
