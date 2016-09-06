@@ -71,6 +71,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>$(ProjectDir)\ThirdParty\Win32Release;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -107,9 +108,11 @@ XCOPY $(ProjectDir)\ThirdParty\Win32Debug\*.dll $(OutDir) /D /E /I /F /K /Y</Com
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>FreeImage.lib;FreeImagePlus.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY $(SolutionDir)Data $(OutDir) /D /E /I /F /K /Y</Command>
+      <Command>XCOPY $(SolutionDir)Data $(OutDir) /D /E /I /F /K /Y
+XCOPY $(ProjectDir)\ThirdParty\Win32Release\*.dll $(OutDir) /D /E /I /F /K /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
