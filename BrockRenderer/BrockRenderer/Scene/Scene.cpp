@@ -16,3 +16,9 @@ void Scene::AddTriangles(const std::string &texture,const Triangle &triangle)
 void Scene::LoadModel(const std::string &filename)
 {
 }
+
+void Scene::LoadTexture( const std::string &filename )
+{
+	Texture* pTex = new Texture(filename);
+	m_textures[filename] = pTex;
+}

@@ -91,6 +91,9 @@
     <ClInclude Include="Renderer\VSOUT.h">
       <Filter>Renderer\Header</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer\Texture.h">
+      <Filter>Renderer\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window\events.cpp">
@@ -115,6 +118,9 @@
       <Filter>Scene\Source</Filter>
     </ClCompile>
     <ClCompile Include="Renderer\Context.cpp">
+      <Filter>Renderer\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Texture.cpp">
       <Filter>Renderer\Source</Filter>
     </ClCompile>
   </ItemGroup>

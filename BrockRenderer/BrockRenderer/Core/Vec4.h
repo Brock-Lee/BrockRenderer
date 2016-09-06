@@ -26,12 +26,13 @@ public:
 		: x(v), y(v), z(v),w(v)
 	{
 	}
-    template <class T2>
-    _TVector4(const _TVector4<T2>& vecCopy)
+	
+
+    _TVector4(const _TVector4<T>& vecCopy)
     {
 		*this = vecCopy;
     }
-
+	
     _TVector4(const T *fpVec)
         : x(fpVec[0]), y(fpVec[1]), z(fpVec[2]), w(fpVec[3])
     {
@@ -213,7 +214,7 @@ public:
     * @return
     */
     template <class T2>
-    _TVector4<T> operator =  (const _TVector4<T2>& vec) const
+    _TVector4<T> operator =  (const _TVector4<T2>& vec)
     {
         x = static_cast<T>(vec.x);
         y = static_cast<T>(vec.y);
@@ -223,7 +224,7 @@ public:
     }
 
 	template <class T2>
-	_TVector4<T> operator =  (const _TVector3<T2>& vec) const
+	_TVector4<T> operator =  (const _TVector3<T2>& vec)
 	{
 		x = static_cast<T>(vec.x);
 		y = static_cast<T>(vec.y);
@@ -309,3 +310,4 @@ typedef _TVector4<float>  vec4;
 typedef _TVector4<double> vec4d;
 typedef _TVector4<int>    vec4i;
 typedef _TVector4<unsigned int> vec4u;
+typedef _TVector4<unsigned char> vec4uc;

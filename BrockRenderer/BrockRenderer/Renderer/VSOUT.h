@@ -44,3 +44,12 @@ struct PSIN{
 };
 
 typedef vec4 PSOUT;
+
+
+struct Uniform{
+	std::string texture;
+	vec3 materialSpecular;
+	vec3 materialAmbient;
+	vec3 materialDiffuse;
+	Uniform():materialSpecular(1.0), materialAmbient(1.0), materialDiffuse(1.0){}
+};

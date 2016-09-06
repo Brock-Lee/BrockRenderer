@@ -162,7 +162,7 @@ void Context::ScanLine(VSOUT& a, VSOUT& b )
 	for(;;){
 		VSOUT temp = PerspectiveInterp(a, b, (x*2.0/fixedViewportX -1.0 -a.ndc.x)/ NoZero(b.ndc.x - a.ndc.x));
 
-		FillPixel(x,y,vec4(1.0), temp.ndc.z);//FragmentShading(PSIN(temp.normaldw * temp.w, temp.uvdw*temp.w, temp.viewPositiondw*temp.w)), temp.ndc.z);
+		FillPixel(x,y, FragmentShading(PSIN(temp.normaldw * temp.w, temp.uvdw*temp.w, temp.viewPositiondw*temp.w)), temp.ndc.z);
 			//white?vec4(1.0):vec4(0.0), temp.w);
 		if (x==x1 || x==fixedViewportX-1) break;
 		x += 1;
@@ -237,11 +237,12 @@ void Context::DrawTriangles()
 
 PSOUT Context::FragmentShading(PSIN fragment)
 {
-	vec3 diffuse = fragment.normal.Dot(g_scene->sun_dir) * 1.0;
+	vec4 color = g_scene->m_textures.begin()->second->Sample(fragment.uv);
+	vec3 diffuse = vec3( (float*)&color) * fragment.normal.Dot(g_scene->sun_dir);
 	static vec3 ambient(0.2);
 	vec3 midRay = ((fragment.viewPosition*-1.0).Normalize() + g_scene->sun_dir).Normalize();
 	vec3 specular = vec3(pow( double(midRay.Dot(fragment.normal)), 400.0)) *0.0;
-	return vec4(diffuse + ambient + specular, 1.0);
+	return color; //vec4(diffuse + ambient + specular, 1.0);
 }
 
 void Context::DrawTriangle( const Triangle& triangle )
