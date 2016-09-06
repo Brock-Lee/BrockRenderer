@@ -16,6 +16,7 @@ private:
 	void DrawPoints();
 	void DrawLine(const vec3 &a, const vec3 &b);
 	void DrawTriangle(const Triangle& triangle);
+	void DrawClippedTriangle(std::vector<VSOUT> triangle);
 	void DrawFlatTriangle(const std::vector<VSOUT> &triangle, int dir);
 	void DrawTriangles();
 	PSOUT FragmentShading(PSIN fragment);
@@ -23,7 +24,7 @@ private:
 	//线框模式
 	void FillLine(float x0, float y0, float z0, float x1, float y1, float z1);
 	//扫描线
-	void ScanLine(const VSOUT& a, const VSOUT& b);
+	void ScanLine(VSOUT& a, VSOUT& b);
 	vec4 ClampPoint(const vec4 &a, const vec4 & b, const vec4 &p);
 	int NDC2ScreenX(float x);
 	int NDC2ScreenY(float y);

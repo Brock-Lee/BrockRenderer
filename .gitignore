@@ -58,4 +58,8 @@
 /BrockRenderer/*.opensdf
 /BrockRenderer/BrockRenderer/Debug/*.obj
 /BrockRenderer/BrockRenderer/Debug/*.tlog
+/BrockRenderer/BrockRenderer/Release/*.*
 /BrockRenderer/ipch/brockrenderer-694f1ee8/*.ipch
+/BrockRenderer/BrockRenderer/*.log
+/BrockRenderer/Release/*.exe
+/BrockRenderer/Release/*.pdb

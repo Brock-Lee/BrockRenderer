@@ -147,22 +147,25 @@ void Context::FillLine(float xNDC0, float yNDC0, float zNDC0, float xNDC1, float
 
 }
 
-void Context::ScanLine( const VSOUT& a, const VSOUT& b )
+void Context::ScanLine(VSOUT& a, VSOUT& b )
 {
-	int y0 = NDC2ScreenY(a.ndc.y); 
-	if(y0<0 || y0>=fixedViewportY) return;
-	int x0 = max(NDC2ScreenX(a.ndc.x), 0);
-	int x1 = min(NDC2ScreenX(b.ndc.x), fixedViewportX-1);
-	int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
+	if(a.ndc.x > b.ndc.x)
+		swap(a, b);
+	if(a.ndc.y < -1 || a.ndc.y> 1 || b.ndc.x<-1 || a.ndc.x>1)
+		return;
 
+	int y = std::floor((a.ndc.y+1.0)/2.0 * fixedViewportY);
+	int x0 = std::floor((a.ndc.x+1.0)/2.0 * fixedViewportY);
+	int x1 = std::floor((b.ndc.x+1.0)/2.0 * fixedViewportY);
+	int x= max(int(0), x0);
 
 	for(;;){
-		VSOUT temp = PerspectiveInterp(a, b, (x0*2.0/fixedViewportX -1.0 -a.ndc.x)/ NoZero(b.ndc.x - a.ndc.x));
+		VSOUT temp = PerspectiveInterp(a, b, (x*2.0/fixedViewportX -1.0 -a.ndc.x)/ NoZero(b.ndc.x - a.ndc.x));
 
-		FillPixel(x0,y0,FragmentShading(PSIN(temp.normaldw * temp.w, temp.uvdw*temp.w, temp.viewPositiondw*temp.w)), temp.ndc.z);
+		FillPixel(x,y,vec4(1.0), temp.ndc.z);//FragmentShading(PSIN(temp.normaldw * temp.w, temp.uvdw*temp.w, temp.viewPositiondw*temp.w)), temp.ndc.z);
 			//white?vec4(1.0):vec4(0.0), temp.w);
-		if (x0==x1) break;
-		x0 += sx;
+		if (x==x1 || x==fixedViewportX-1) break;
+		x += 1;
 	}
 }
 
@@ -243,6 +246,7 @@ PSOUT Context::FragmentShading(PSIN fragment)
 
 void Context::DrawTriangle( const Triangle& triangle )
 {
+	/*
 	vector<VSOUT> vertices(3);
 	for(int i=0; i<3; i++)
 	{
@@ -252,13 +256,54 @@ void Context::DrawTriangle( const Triangle& triangle )
 		vertices[i].uvdw = triangle.v[i].uv/ projCoord.w;
 		vertices[i].normaldw = triangle.v[i].normal/ projCoord.w;
 		vertices[i].viewPositiondw = triangle.v[i].position - g_camera->GetPosition() / projCoord.w;
+	}*/
+	// BackFace Culling
+	if( (g_camera->m_position-triangle.v[0].position).Dot(triangle.v[0].normal) < 0 )
+		return;
+	vector<VSOUT> verticesPre(3);
+	for(int i=0; i<3; i++)
+	{
+		vec4 projCoord = vec4(triangle.v[i].position,1.0) * g_camera->m_viewMatrix * g_camera->m_projMatrix;
+		verticesPre[i].ndc = vec3((float*)&projCoord);
+		verticesPre[i].w = projCoord.w;
+		verticesPre[i].uvdw = triangle.v[i].uv;
+		verticesPre[i].normaldw = triangle.v[i].normal;
+		verticesPre[i].viewPositiondw = triangle.v[i].position - g_camera->GetPosition();
 	}
-
+	sort(verticesPre.begin(), verticesPre.end(),
+		[](const VSOUT &a, const VSOUT &b){ return a.w < b.w;}
+	);
+	if(verticesPre[2].w < g_camera->m_nearZ)
+		return;
+	else if(verticesPre[1].w < g_camera->m_nearZ)
+	{
+		verticesPre[0] = Interp(verticesPre[2], verticesPre[0], (g_camera->m_nearZ - verticesPre[2].w) / (verticesPre[0].w - verticesPre[2].w ) );
+		verticesPre[1] = Interp(verticesPre[2], verticesPre[1], (g_camera->m_nearZ - verticesPre[2].w) / (verticesPre[1].w - verticesPre[2].w ) );
+		DrawClippedTriangle(verticesPre);
+	}
+	else if( verticesPre[0].w < g_camera->m_nearZ)
+	{
+		VSOUT v01 = Interp(verticesPre[1], verticesPre[0], (g_camera->m_nearZ - verticesPre[1].w) / (verticesPre[0].w - verticesPre[1].w ) );
+		VSOUT v02 = Interp(verticesPre[2], verticesPre[0], (g_camera->m_nearZ - verticesPre[2].w) / (verticesPre[0].w - verticesPre[2].w ) );
+		verticesPre[0] = v01;
+		DrawClippedTriangle(verticesPre);
+		verticesPre[1] = v02;
+		DrawClippedTriangle(verticesPre);
+	}
+	else
+		DrawClippedTriangle(verticesPre);
 	//TODO:: Backface Clipping
 	//TODO:: NearPlane Clipping
+}
+void Context::DrawClippedTriangle( std::vector<VSOUT> vertices )
+{
+	for(int i=0; i<3; i++)
+	{
+		vertices[i].DivideByW();
+	}
 	sort(vertices.begin(), vertices.end(),
 		[](const VSOUT &a, const VSOUT &b){ return a.ndc.y > b.ndc.y;}
-		);
+	);
 	if(vertices[0].ndc.y == vertices[2].ndc.y)  // Ë®Æ½Ïß
 		return;
 	vector<VSOUT> verticesTop = vertices;
@@ -269,7 +314,6 @@ void Context::DrawTriangle( const Triangle& triangle )
 	verticesBottom[0] = vertices[2];
 	DrawFlatTriangle(verticesBottom, -1);
 }
-
 void Context::DrawFlatTriangle( const std::vector<VSOUT> &triangle, int dir)
 {
 	//TODO:: precision details
@@ -298,3 +342,5 @@ void Context::DrawFlatTriangle( const std::vector<VSOUT> &triangle, int dir)
 
 	}
 }
+
+

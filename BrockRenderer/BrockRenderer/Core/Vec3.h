@@ -263,3 +263,10 @@ typedef _TVector3<float> vec3;
 typedef _TVector3<double> vec3d;
 typedef _TVector3<int>    vec3i;
 typedef _TVector3<unsigned int> vec3u;
+
+template <typename T>
+inline std::ifstream& operator << ( std::ifstream& inf, _TVector3<T> a)
+{
+	inf>>a.x>>a.y>>a.z; 
+	return inf;
+}

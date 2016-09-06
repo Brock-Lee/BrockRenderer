@@ -139,3 +139,10 @@ typedef  _TVector2<float> vec2;
 typedef _TVector2<double> vec2d;
 typedef _TVector2<int> vec2i;
 typedef _TVector2<unsigned int> vec2u;
+
+template <typename T>
+inline std::ifstream& operator << ( std::ifstream& inf, _TVector2<T> a)
+{
+	inf>>a.x>>a.y>>a.z; 
+	return inf;
+}
