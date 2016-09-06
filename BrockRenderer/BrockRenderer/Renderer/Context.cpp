@@ -327,7 +327,7 @@ void Context::DrawFlatTriangle( const std::vector<VSOUT> &triangle, int dir)
 	float t = ( (y0 + 0.5)*2.0/fixedViewportY-1.0-triangle[0].ndc.y) / NoZero(triangle[1].ndc.y - triangle[0].ndc.y);
 	float t2 = ( (screenC[1].y + 0.5)*2.0/fixedViewportY-1.0-triangle[0].ndc.y) / NoZero(triangle[1].ndc.y - triangle[0].ndc.y);
 	t2 = min(1.0, t2);
-	float dt = (t2-t)/ NoZero(abs(screenC[1].y-y0));
+	float dt = abs((2.0/fixedViewportY) / NoZero(triangle[1].ndc.y - triangle[0].ndc.y));//(t2-t)/ NoZero(abs(screenC[1].y-y0));
 	while(true)
 	{
 		if(t>=0.0 && t<=1.0)
