@@ -5,12 +5,14 @@ public:
 	Context();
     static const unsigned int fixedViewportX= 800, fixedViewportY=800;
 	unsigned char m_pixels[2][fixedViewportY][fixedViewportX][4];
-	float m_depth[fixedViewportY][fixedViewportX];
 	bool m_lineMode;
+	bool m_backFaceCulling;
 	int m_bufferFlag;
-	Window::WindowsViewport* m_vp;
 	void Render();
 private:
+	Uniform m_uniformState;
+	float m_depth[fixedViewportY][fixedViewportX];
+	Window::WindowsViewport* m_vp;
 	void Draw();
 	void Clear();
 	void DrawPoints();

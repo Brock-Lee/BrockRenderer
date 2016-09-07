@@ -88,10 +88,10 @@
     <ClInclude Include="Core\MathUtils.h">
       <Filter>Core\Header</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\VSOUT.h">
+    <ClInclude Include="Renderer\Texture.h">
       <Filter>Renderer\Header</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\Texture.h">
+    <ClInclude Include="Renderer\ShadingData.h">
       <Filter>Renderer\Header</Filter>
     </ClInclude>
   </ItemGroup>

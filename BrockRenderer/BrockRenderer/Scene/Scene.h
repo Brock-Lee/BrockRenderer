@@ -1,5 +1,6 @@
 #pragma once
 class Texture;
+class Material;
 class Scene{
 
 public:
@@ -8,6 +9,7 @@ public:
 		sun_dir = sun_dir.Normalize();
 	}
 	std::unordered_map<std::string, Texture*> m_textures;
+	std::unordered_map<std::string, Material*> m_materials;
 	void AddPoint(const vec3 &p);
 	void AddTriangles(const std::string &texture,const Triangle &triangle);
 	std::vector<vec3> m_points;

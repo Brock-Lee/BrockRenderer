@@ -2,7 +2,7 @@
 
 using namespace std;
 Context* g_context;
-Context::Context():m_lineMode(false),m_bufferFlag(0)
+Context::Context():m_lineMode(false),m_bufferFlag(0),m_backFaceCulling(false)
 {
 	memset(m_pixels, 0, sizeof(m_pixels));
 	for(int i=0; i<fixedViewportY; i++)
@@ -226,6 +226,8 @@ void Context::DrawTriangles()
 		auto iter = g_scene->m_triangles.begin();
 		for(; iter!=g_scene->m_triangles.end(); iter++)
 		{
+			m_uniformState.pTexture = g_scene->m_textures[iter->first];
+			m_uniformState.pMaterial = g_scene->m_materials[iter->first];
 			for(int t=0; t<iter->second.size(); t++)
 				DrawTriangle(iter->second.at(t));
 		}
@@ -238,12 +240,18 @@ void Context::DrawTriangles()
 
 PSOUT Context::FragmentShading(PSIN fragment)
 {
-	vec4 color = g_scene->m_textures.begin()->second->Sample(fragment.uv);
+	vec4 color;
+	if(m_uniformState.pTexture)
+		color = m_uniformState.pTexture->Sample(fragment.uv);
+	else
+		color = m_uniformState.pMaterial->materialDiffuse;
 	vec3 diffuse = vec3( (float*)&color) * fragment.normal.Dot(g_scene->sun_dir);
-	static vec3 ambient(0.2);
+	static vec3 ambientLight(0.2);
+	static float shineness = 400.0;
+	vec3 ambient = ambientLight * m_uniformState.pMaterial->materialAmbient;
 	vec3 midRay = ((fragment.viewPosition*-1.0).Normalize() + g_scene->sun_dir).Normalize();
-	vec3 specular = vec3(pow( double(midRay.Dot(fragment.normal)), 400.0)) *0.0;
-	return color; //vec4(diffuse + ambient + specular, 1.0);
+	vec3 specular = vec3(pow( float(midRay.Dot(fragment.normal)), shineness)) * m_uniformState.pMaterial->materialSpecular;
+	return vec4(diffuse + ambientLight + specular, 1.0);
 }
 
 void Context::DrawTriangle( const Triangle& triangle )
@@ -260,7 +268,7 @@ void Context::DrawTriangle( const Triangle& triangle )
 		vertices[i].viewPositiondw = triangle.v[i].position - g_camera->GetPosition() / projCoord.w;
 	}*/
 	// BackFace Culling
-	if( (g_camera->m_position-triangle.v[0].position).Dot(triangle.v[0].normal) < 0 )
+	if(m_backFaceCulling && (g_camera->m_position-triangle.v[0].position).Dot(triangle.v[0].normal) < 0 )
 		return;
 	vector<VSOUT> verticesPre(3);
 	for(int i=0; i<3; i++)
@@ -328,7 +336,7 @@ void Context::DrawFlatTriangle( const std::vector<VSOUT> &triangle, int dir)
 	float t = ( (y0 + 0.5)*2.0/fixedViewportY-1.0-triangle[0].ndc.y) / NoZero(triangle[1].ndc.y - triangle[0].ndc.y);
 	float t2 = ( (screenC[1].y + 0.5)*2.0/fixedViewportY-1.0-triangle[0].ndc.y) / NoZero(triangle[1].ndc.y - triangle[0].ndc.y);
 	t2 = min(1.0, t2);
-	float dt = (t2-t)/ NoZero(abs(screenC[1].y-y0));
+	float dt = abs((2.0/fixedViewportY) / NoZero(triangle[1].ndc.y - triangle[0].ndc.y));//(t2-t)/ NoZero(abs(screenC[1].y-y0));
 	while(true)
 	{
 		if(t>=0.0 && t<=1.0)

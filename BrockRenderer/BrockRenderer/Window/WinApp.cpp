@@ -129,7 +129,7 @@ void WinApp::onMouseEvent( const MouseEvent &ev )
 
 void WinApp::onKeyPressed( const KeyboardEvent &ev )
 {
-	static const float velocity = 0.01f;
+	static const float velocity = 1.0;
 	//    static math::vec3 ds;
 	//    static math::vec3 position;
 
