@@ -157,6 +157,7 @@ void Context::ScanLine(VSOUT& a, VSOUT& b )
 	int y = std::floor((a.ndc.y+1.0)/2.0 * fixedViewportY);
 	int x0 = std::floor((a.ndc.x+1.0)/2.0 * fixedViewportY);
 	int x1 = std::floor((b.ndc.x+1.0)/2.0 * fixedViewportY);
+
 	int x= max(int(0), x0);
 
 	for(;;){
@@ -200,12 +201,12 @@ vec4 Context::ClampPoint(const vec4 &a, const vec4 & b, const vec4 &p)
 
 int Context::NDC2ScreenX(float x)
 {
-	return min(std::floor((x+1.0)/2.0 * fixedViewportX), fixedViewportX-1);
+	return max(min(std::floor((x+1.0)/2.0 * fixedViewportX), fixedViewportX-1),0);
 }
 
 int Context::NDC2ScreenY(float y)
 {
-	return min(std::floor((y+1.0)/2.0 * fixedViewportY), fixedViewportY-1);
+	return max(min(std::floor((y+1.0)/2.0 * fixedViewportY), fixedViewportY-1), 0);
 }
 
 void Context::DrawTriangles()
