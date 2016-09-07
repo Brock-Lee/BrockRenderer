@@ -2,8 +2,9 @@
 
 Camera::Camera()
 {
-	LookAt(vec3(0,0,0), vec3(0,0,1), vec3(0,1,0));
-	Perspective(PAI*0.8, 1, 0.1, 1000);
+	//LookAt(vec3(0,0,0), vec3(0,0,1), vec3(0,1,0));
+	LookAt(g_scene->m_aabb.maxxyz.x, (g_scene->m_aabb.minxyz-g_scene->m_aabb.maxxyz).Normalize(), vec3(0,0,1));
+	Perspective(PAI*0.6, 1, 0.1, 10000);
 }
 
 void Camera::LookAt( vec3 pos, vec3 dir, vec3 up )
@@ -40,7 +41,7 @@ void Camera::Move(vec3 v)
 	t[3][0] = -v.x;
 	t[3][1] = -v.y;
 	t[3][2] = -v.z;
-	m_viewMatrix = m_viewMatrix * t;
+	m_viewMatrix = t* m_viewMatrix;
 	m_position += v;
 }
 
@@ -48,7 +49,14 @@ vec3 Camera::GetZ()
 {
 	return vec3(m_viewMatrix[0][2], m_viewMatrix[1][2],m_viewMatrix[2][2]);
 }
-
+vec3 Camera::GetX()
+{
+	return vec3(m_viewMatrix[0][0], m_viewMatrix[1][0],m_viewMatrix[2][0]);
+}
+vec3 Camera::GetY()
+{
+	return vec3(m_viewMatrix[0][1], m_viewMatrix[1][1],m_viewMatrix[2][1]);
+}
 vec3 Camera::GetPosition()
 {
 	return m_position;

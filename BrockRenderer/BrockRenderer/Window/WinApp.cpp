@@ -154,11 +154,27 @@ void WinApp::onKeyPressed( const KeyboardEvent &ev )
 	{
 		//ds = m_playerCamera->getRightVector() * velocity;
 		//        position += ds;
+		g_camera->Move(g_camera->GetX()*velocity);
+
+		g_context->Render();
 	}
 	else if (ev.keycode() == Window::KEY_KEY_A)
 	{
-		// ds = m_playerCamera->getRightVector() * velocity;
-		//        position -= ds;
+		g_camera->Move(g_camera->GetX()*-velocity);
+
+		g_context->Render();
+	}
+	else if (ev.keycode() == Window::KEY_KEY_Q)
+	{
+		g_camera->Move(g_camera->GetY()*velocity);
+
+		g_context->Render();
+	}
+	else if (ev.keycode() == Window::KEY_KEY_E)
+	{
+		g_camera->Move(g_camera->GetY()*-velocity);
+
+		g_context->Render();
 	}
 	else
 		return;

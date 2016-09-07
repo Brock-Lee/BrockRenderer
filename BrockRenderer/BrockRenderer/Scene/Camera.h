@@ -11,6 +11,8 @@ public:
 	void Perspective(float fov, float aspect, float nearz, float farz);
 	void Move(vec3 v);
 	vec3 GetZ();
+	vec3 GetX();
+	vec3 GetY();
 	vec3 GetPosition();
 	//float m_yaw, m_pitch, m_roll;
 	//! Field of view. Default is 90 grad.

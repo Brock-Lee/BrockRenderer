@@ -23,19 +23,28 @@ Texture::Texture( std::string filename )
 {
 	fipImage image;
 	image.load(filename.data());
+	assert(image.isValid());
 	image.convertTo32Bits();
 	unsigned int bytes = image.getHeight() * image.getWidth() * 4;
 	unsigned char* pixels = new unsigned char[bytes];
-	memcpy(pixels, image.accessPixels(), bytes);
+	std::vector<unsigned char> ppp(bytes);
+	for(int h=0; h < image.getHeight(); h++)
+	for(int w=0; w < image.getWidth(); w++)
+	for(int i=0; i < 4; i++)
+	{
+		pixels[h*image.getWidth()*4 + w*4 + i] = image.accessPixels()[h*image.getWidth()*4 + w*4 + i];
+	}
+	
+	memcpy(ppp.data(), image.accessPixels(), bytes);
 	layers.push_back(Layer(image.getWidth() , image.getHeight(), pixels));
 }
 
 vec4 Texture::Layer::LinearSample(int w, int h, float tx, float ty)
 {
-	vec4uc v0(pixels[h * width *4 + w * 4]);
-	vec4uc v1(pixels[h * width *4 + (w+1) * 4]);
-	vec4uc v2(pixels[(h+1) * width *4 + w * 4]);
-	vec4uc v12(pixels[(h+1) * width *4 + (w+1) * 4]);
+	vec4uc v0(&pixels[h * width *4 + w * 4]);
+	vec4uc v1(&pixels[h * width *4 + min(w+1, width-1) * 4]);
+	vec4uc v2(&pixels[min(h+1, height-1) * width *4 + w * 4]);
+	vec4uc v12(&pixels[min(h+1, height-1) * width *4 + min(w+1, width-1) * 4]);
 	vec4 v0f, v1f, v2f, v12f;
 	v0f = v0;
 	v1f = v1;

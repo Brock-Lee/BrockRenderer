@@ -6,7 +6,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, char *, int cmdShow)
 try
 {
 	g_scene = new Scene();
-	g_scene->LoadModel("Data/boyata2.obj");
+	g_scene->LoadModel("Data/cj6.obj");
 	/*
 	Triangle t;
 	t.v[0].position = vec3(0.5,-0.5,0.5);

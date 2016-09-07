@@ -245,13 +245,13 @@ PSOUT Context::FragmentShading(PSIN fragment)
 		color = m_uniformState.pTexture->Sample(fragment.uv);
 	else
 		color = m_uniformState.pMaterial->materialDiffuse;
-	vec3 diffuse = vec3( (float*)&color) * fragment.normal.Dot(g_scene->sun_dir);
-	static vec3 ambientLight(0.2);
-	static float shineness = 400.0;
-	vec3 ambient = ambientLight * m_uniformState.pMaterial->materialAmbient;
+	vec3 diffuse = vec3( (float*)&color) * max(fragment.normal.Normalize().Dot(g_scene->sun_dir), 0.0);
+	static vec3 ambientLight(0.3);
+	static float shineness = 100.0;
+	vec3 ambient = ambientLight  * vec3((float*)&color);
 	vec3 midRay = ((fragment.viewPosition*-1.0).Normalize() + g_scene->sun_dir).Normalize();
-	vec3 specular = vec3(pow( float(midRay.Dot(fragment.normal)), shineness)) * m_uniformState.pMaterial->materialSpecular;
-	return vec4(diffuse + ambientLight + specular, 1.0);
+	vec3 specular = vec3(pow( float(max(midRay.Dot(fragment.normal), 0.0)), shineness));
+	return vec4(diffuse+ ambient + specular,1.0);// + specular, 1.0);
 }
 
 void Context::DrawTriangle( const Triangle& triangle )

@@ -48,9 +48,10 @@ void Scene::LoadModel(const std::string &filename)
 		m_materials[texName]->materialSpecular = vec3((float*)&specular);
 
 		// Vertex attributes
-		unsigned int nBefore = m_triangles.size();
+		unsigned int nBefore = m_triangles[texName].size();
+		
 		m_triangles[texName].resize(nBefore + mesh->mNumFaces);
-
+		
 		for (unsigned int i=0; i<mesh->mNumFaces; i++){
 			unsigned nTri = nBefore + i;
 			for(int index=0; index<3; index++)
@@ -60,6 +61,7 @@ void Scene::LoadModel(const std::string &filename)
 					break;
 				aiVector3D &p = mesh->mVertices[pVertex];
 				m_triangles[texName].at(nTri).v[index].position = vec3(p.x, p.y, p.z);
+				m_aabb.Update(m_triangles[texName].at(nTri).v[index].position );
 				aiVector3D &n = mesh->mNormals[pVertex];
 				m_triangles[texName].at(nTri).v[index].normal = vec3(n.x, n.y, n.z);
 				if(mesh->HasTextureCoords(0))
