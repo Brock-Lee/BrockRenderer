@@ -23,6 +23,7 @@ private:
 	void DrawTriangles();
 	PSOUT FragmentShading(PSIN fragment);
 	void FillPixel(int x, int y, vec4 color, float depth);
+	bool DepthTest(int x, int y, float depth);
 	//线框模式
 	void FillLine(float x0, float y0, float z0, float x1, float y1, float z1);
 	//扫描线

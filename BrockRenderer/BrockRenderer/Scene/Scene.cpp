@@ -10,9 +10,10 @@ void Scene::AddPoint( const vec3 &p )
 	m_points.push_back(p);
 }
 
-void Scene::AddTriangles(const std::string &texture,const Triangle &triangle)
+void Scene::AddTriangle(const std::string &texture,const Triangle &triangle)
 {
 	m_triangles[texture].push_back(triangle);
+	m_triangleCount ++ ;
 }
 
 void Scene::LoadModel(const std::string &filename)
@@ -50,26 +51,31 @@ void Scene::LoadModel(const std::string &filename)
 		// Vertex attributes
 		unsigned int nBefore = m_triangles[texName].size();
 		
-		m_triangles[texName].resize(nBefore + mesh->mNumFaces);
+		m_triangles[texName].reserve(nBefore + mesh->mNumFaces);
 		
 		for (unsigned int i=0; i<mesh->mNumFaces; i++){
-			unsigned nTri = nBefore + i;
-			for(int index=0; index<3; index++)
+			Triangle temp;
+			int index = 0;
+			for(; index<3; index++)
 			{
 				unsigned int pVertex = mesh->mFaces[i].mIndices[index];
 				if(pVertex >= mesh->mNumVertices)
 					break;
 				aiVector3D &p = mesh->mVertices[pVertex];
-				m_triangles[texName].at(nTri).v[index].position = vec3(p.x, p.y, p.z);
-				m_aabb.Update(m_triangles[texName].at(nTri).v[index].position );
+				
+				temp.v[index].position = vec3(p.x, p.y, p.z);
+				//m_triangles[texName].at(nTri).v[index].position = vec3(p.x, p.y, p.z);
+				m_aabb.Update(vec3(p.x, p.y, p.z));
 				aiVector3D &n = mesh->mNormals[pVertex];
-				m_triangles[texName].at(nTri).v[index].normal = vec3(n.x, n.y, n.z);
+				temp.v[index].normal = vec3(n.x, n.y, n.z);
 				if(mesh->HasTextureCoords(0))
 				{
 					aiVector3D &uv = mesh->mTextureCoords[0][pVertex];
-					m_triangles[texName].at(nTri).v[index].uv = vec2(uv.x, uv.y);
+					temp.v[index].uv = vec2(uv.x, uv.y);
 				}
 			}
+			if(index == 3)
+				AddTriangle(texName, temp);
 		}
 		
 	}

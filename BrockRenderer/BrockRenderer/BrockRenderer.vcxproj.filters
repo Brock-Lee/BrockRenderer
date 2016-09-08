@@ -94,6 +94,9 @@
     <ClInclude Include="Renderer\ShadingData.h">
       <Filter>Renderer\Header</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Timer.h">
+      <Filter>Core\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window\events.cpp">

@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClInclude Include="Core\Mat4.h" />
     <ClInclude Include="Core\MathUtils.h" />
+    <ClInclude Include="Core\Timer.h" />
     <ClInclude Include="Core\Triangle.h" />
     <ClInclude Include="Core\Vec2.h" />
     <ClInclude Include="Core\Vec3.h" />

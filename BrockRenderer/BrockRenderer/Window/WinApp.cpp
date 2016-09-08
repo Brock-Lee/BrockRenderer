@@ -58,6 +58,7 @@ WinApp::WinApp()
 {
     
 	//m_clientController = std::make_shared<base::Controller>(argc, argv);
+	g_timer = new Timer();
 	g_camera = new Camera;
 	g_context = new Context();
 	g_context->Render();
@@ -129,7 +130,7 @@ void WinApp::onMouseEvent( const MouseEvent &ev )
 
 void WinApp::onKeyPressed( const KeyboardEvent &ev )
 {
-	static const float velocity = 1.0;
+	float velocity = g_scene->m_aabb.GetMaxLength()/50.0;
 	//    static math::vec3 ds;
 	//    static math::vec3 position;
 
@@ -277,6 +278,7 @@ WindowsViewport::WindowsViewport(int width, int height):m_width(width), m_height
     m_hDC = GetDC(m_hWnd);
 
     ShowWindow(m_hWnd, SW_SHOW);
+
 }
 
 WindowsViewport::~WindowsViewport()
@@ -303,7 +305,6 @@ void WindowsViewport::flush( unsigned char * pixels)
     bmi.bmiHeader.biBitCount    = 32;
     bmi.bmiHeader.biCompression = BI_RGB;
     bmi.bmiHeader.biSizeImage   = 0;
-
     SetDIBitsToDevice(m_hDC,
         0, 0,
         m_width, m_height,
@@ -312,6 +313,22 @@ void WindowsViewport::flush( unsigned char * pixels)
         pixels,
         &bmi,
         DIB_RGB_COLORS);
+	std::stringstream ss;
+	ss<<g_timer->Elapse();
+	std::string timeCost;
+	ss>>timeCost;
+	timeCost += "ms / Frame";
+	WCHAR w_str[50];
+	MultiByteToWideChar (CP_ACP, 0, timeCost.c_str(), -1, w_str, timeCost.size());
+	TextOut(m_hDC, 0, 0, w_str, timeCost.size());
+
+	ss.clear();
+	ss<<g_scene->m_triangleCount;
+	std::string triangleCntStr;
+	ss>>triangleCntStr;
+	triangleCntStr += " Triangles";
+	MultiByteToWideChar (CP_ACP, 0, triangleCntStr.c_str(), -1, w_str, triangleCntStr.size());
+	TextOut(m_hDC, 0, 20, w_str, triangleCntStr.size());
 }
 
 }

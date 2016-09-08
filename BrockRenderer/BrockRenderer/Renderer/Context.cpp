@@ -2,7 +2,8 @@
 
 using namespace std;
 Context* g_context;
-Context::Context():m_lineMode(false),m_bufferFlag(0),m_backFaceCulling(false)
+Timer* g_timer;
+Context::Context():m_lineMode(false),m_bufferFlag(0),m_backFaceCulling(true)
 {
 	memset(m_pixels, 0, sizeof(m_pixels));
 	for(int i=0; i<fixedViewportY; i++)
@@ -13,8 +14,10 @@ Context::Context():m_lineMode(false),m_bufferFlag(0),m_backFaceCulling(false)
 
 void Context::Render()
 {
+	g_timer->Start();
 	Clear();			
 	Draw();
+	g_timer->Stop();
 	m_vp->flush(&m_pixels[m_bufferFlag][0][0][0]);
 	m_bufferFlag = 1-m_bufferFlag;
 }
@@ -160,13 +163,13 @@ void Context::ScanLine(VSOUT& a, VSOUT& b )
 
 	int x= max(int(0), x0);
 
-	for(;;){
+	for(;x<=x1 && x<fixedViewportX; x++){
 		VSOUT temp = PerspectiveInterp(a, b, (x*2.0/fixedViewportX -1.0 -a.ndc.x)/ NoZero(b.ndc.x - a.ndc.x));
-
+		//pre-z
+		if( !DepthTest(x, y, temp.ndc.z) )
+			continue;
+		//
 		FillPixel(x,y, FragmentShading(PSIN(temp.normaldw * temp.w, temp.uvdw*temp.w, temp.viewPositiondw*temp.w)), temp.ndc.z);
-			//white?vec4(1.0):vec4(0.0), temp.w);
-		if (x==x1 || x==fixedViewportX-1) break;
-		x += 1;
 	}
 }
 
@@ -178,10 +181,14 @@ void Context::Clear()
 			m_depth[i][j] = 1.0;
 }
 
+bool Context::DepthTest( int x, int y, float depth )
+{
+	return depth < m_depth[fixedViewportY-1-y][x];
+}
 
 void Context::FillPixel(int x, int y, vec4 color, float depth)
 {
-	if(depth > m_depth[fixedViewportY-1-y][x])
+	if( !DepthTest(x,y,depth) )
 		return;
 	for(int i=0; i<4; i++)
 		m_pixels[m_bufferFlag][fixedViewportY-1-y][x][i]  = FloatToByte(color[i]);
@@ -240,17 +247,19 @@ void Context::DrawTriangles()
 
 PSOUT Context::FragmentShading(PSIN fragment)
 {
-	vec4 color;
+	vec3 color;
+	fragment.normal.Normalize();
 	if(m_uniformState.pTexture)
-		color = m_uniformState.pTexture->Sample(fragment.uv);
+		color = vec3((float*)(&m_uniformState.pTexture->Sample(fragment.uv)));
 	else
 		color = m_uniformState.pMaterial->materialDiffuse;
-	vec3 diffuse = vec3( (float*)&color) * max(fragment.normal.Normalize().Dot(g_scene->sun_dir), 0.0);
+	vec3 diffuse = color * max(fragment.normal.Dot(g_scene->sun_dir), 0.0);
 	static vec3 ambientLight(0.3);
 	static float shineness = 100.0;
-	vec3 ambient = ambientLight  * vec3((float*)&color);
+	vec3 ambient = ambientLight  * color;
 	vec3 midRay = ((fragment.viewPosition*-1.0).Normalize() + g_scene->sun_dir).Normalize();
-	vec3 specular = vec3(pow( float(max(midRay.Dot(fragment.normal), 0.0)), shineness));
+	// POW is quiet time-costing!
+	vec3 specular  = vec3(pow( float(max(midRay.Dot(fragment.normal), 0.0)), shineness));
 	return vec4(diffuse+ ambient + specular,1.0);// + specular, 1.0);
 }
 
@@ -268,7 +277,7 @@ void Context::DrawTriangle( const Triangle& triangle )
 		vertices[i].viewPositiondw = triangle.v[i].position - g_camera->GetPosition() / projCoord.w;
 	}*/
 	// BackFace Culling
-	if(m_backFaceCulling && (g_camera->m_position-triangle.v[0].position).Dot(triangle.v[0].normal) < 0 )
+	if(m_backFaceCulling && (g_camera->m_position-triangle.v[0].position).Dot(triangle.v[0].normal) < 0.0000001 )
 		return;
 	vector<VSOUT> verticesPre(3);
 	for(int i=0; i<3; i++)
@@ -352,5 +361,6 @@ void Context::DrawFlatTriangle( const std::vector<VSOUT> &triangle, int dir)
 
 	}
 }
+
 
 

@@ -40,6 +40,7 @@
 #include "Core/Vec4.h"
 #include "Core/Mat4.h"
 #include "Core/Triangle.h"
+#include "Core/Timer.h"
 #include "Window/WinBase.h"
 #include "Window/WinApp.h"
 #include "Window/events.h"
