@@ -168,7 +168,7 @@ void Context::ScanLine(VSOUT& a, VSOUT& b )
 		//pre-z
 		if( !DepthTest(x, y, temp.ndc.z) )
 			continue;
-		//
+		//Fragment Shading
 		FillPixel(x,y, FragmentShading(PSIN(temp.normaldw * temp.w, temp.uvdw*temp.w, temp.viewPositiondw*temp.w)), temp.ndc.z);
 	}
 }
@@ -238,15 +238,14 @@ void Context::DrawTriangles()
 			for(int t=0; t<iter->second.size(); t++)
 				DrawTriangle(iter->second.at(t));
 		}
-		/*
-		VertexProcess(Triangle * vertexBuffer, VSOUT* vsout);
-		TriangleRasterization(VSOUT* vsout);
-		FragmentProcess();*/
 	}
 }
 
 PSOUT Context::FragmentShading(PSIN fragment)
 {
+	static vec3 ambientLight(0.3);
+	static float shineness = 100.0;
+
 	vec3 color;
 	fragment.normal.Normalize();
 	if(m_uniformState.pTexture)
@@ -254,30 +253,17 @@ PSOUT Context::FragmentShading(PSIN fragment)
 	else
 		color = m_uniformState.pMaterial->materialDiffuse;
 	vec3 diffuse = color * max(fragment.normal.Dot(g_scene->sun_dir), 0.0);
-	static vec3 ambientLight(0.3);
-	static float shineness = 100.0;
 	vec3 ambient = ambientLight  * color;
 	vec3 midRay = ((fragment.viewPosition*-1.0).Normalize() + g_scene->sun_dir).Normalize();
 	// POW is quiet time-costing!
 	vec3 specular  = vec3(pow( float(max(midRay.Dot(fragment.normal), 0.0)), shineness));
-	return vec4(diffuse+ ambient + specular,1.0);// + specular, 1.0);
+	return vec4(diffuse+ ambient + specular,1.0);
 }
 
 void Context::DrawTriangle( const Triangle& triangle )
 {
-	/*
-	vector<VSOUT> vertices(3);
-	for(int i=0; i<3; i++)
-	{
-		vec4 projCoord = vec4(triangle.v[i].position,1.0) * g_camera->m_viewMatrix * g_camera->m_projMatrix;
-		vertices[i].ndc = vec3((float*)&projCoord) / projCoord.w;
-		vertices[i].w = projCoord.w;
-		vertices[i].uvdw = triangle.v[i].uv/ projCoord.w;
-		vertices[i].normaldw = triangle.v[i].normal/ projCoord.w;
-		vertices[i].viewPositiondw = triangle.v[i].position - g_camera->GetPosition() / projCoord.w;
-	}*/
 	// BackFace Culling
-	if(m_backFaceCulling && (g_camera->m_position-triangle.v[0].position).Dot(triangle.v[0].normal) < 0.0000001 )
+	if(m_backFaceCulling && (g_camera->m_position-triangle.v[0].position).Dot(triangle.face_normal) < 0.0 )
 		return;
 	vector<VSOUT> verticesPre(3);
 	for(int i=0; i<3; i++)
@@ -292,6 +278,8 @@ void Context::DrawTriangle( const Triangle& triangle )
 	sort(verticesPre.begin(), verticesPre.end(),
 		[](const VSOUT &a, const VSOUT &b){ return a.w < b.w;}
 	);
+
+	// near Z Clipping
 	if(verticesPre[2].w < g_camera->m_nearZ)
 		return;
 	else if(verticesPre[1].w < g_camera->m_nearZ)
@@ -311,8 +299,6 @@ void Context::DrawTriangle( const Triangle& triangle )
 	}
 	else
 		DrawClippedTriangle(verticesPre);
-	//TODO:: Backface Clipping
-	//TODO:: NearPlane Clipping
 }
 void Context::DrawClippedTriangle( std::vector<VSOUT> vertices )
 {

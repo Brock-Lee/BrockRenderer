@@ -75,7 +75,10 @@ void Scene::LoadModel(const std::string &filename)
 				}
 			}
 			if(index == 3)
+			{
+				temp.GenFaceNormal();
 				AddTriangle(texName, temp);
+			}
 		}
 		
 	}
