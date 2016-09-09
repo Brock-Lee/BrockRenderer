@@ -55,3 +55,11 @@ struct Uniform{
 	Texture *pTexture;
 	Material *pMaterial;
 };
+
+struct Fragment
+{
+	PSIN psin;
+	int x, y;
+	float depth;
+	Fragment(PSIN p, int xx, int yy, float d) :psin(p), x(xx), y(yy), depth(d){}
+};

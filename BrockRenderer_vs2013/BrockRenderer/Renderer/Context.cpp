@@ -1,8 +1,37 @@
 #include "stdafx.h"
-
+#include <thread>
+#include <mutex>
 using namespace std;
 Context* g_context;
 Timer* g_timer;
+namespace{
+	void VertexProcess(Context *context, const vector<Triangle>& triangles, std::vector<Fragment> &fragments)
+	{
+		for (auto &t : triangles)
+			context->DrawTriangle(t, fragments);
+	}
+	vec4 FragmentProcess(PSIN &fragment, const Uniform &uniformState)
+	{
+		static vec3 ambientLight(0.3);
+		static float shineness = 100.0;
+
+		vec3 color;
+		fragment.normal.Normalize();
+		if (uniformState.pTexture)
+			color = vec3((float*)(&uniformState.pTexture->Sample(fragment.uv)));
+		else
+			color = uniformState.pMaterial->materialDiffuse;
+		vec3 diffuse = color * max(fragment.normal.Dot(g_scene->sun_dir), 0.0);
+		vec3 ambient = ambientLight  * color;
+		vec3 midRay = ((fragment.viewPosition*-1.0).Normalize() + g_scene->sun_dir).Normalize();
+		// POW is quiet time-costing!
+		vec3 specular(0.0);
+		float cosTheta = max(midRay.Dot(fragment.normal), 0.0);
+		if (cosTheta > 0.90)  // reduce some pow cost
+			specular = vec3(pow(cosTheta, shineness));
+		return vec4(diffuse + ambient + specular, 1.0);
+	}
+}
 Context::Context():m_lineMode(false),m_bufferFlag(0),m_backFaceCulling(true)
 {
 	memset(m_pixels, 0, sizeof(m_pixels));
@@ -14,12 +43,15 @@ Context::Context():m_lineMode(false),m_bufferFlag(0),m_backFaceCulling(true)
 
 void Context::Render()
 {
+	//renderMutex.lock();
 	g_timer->Start();
 	Clear();			
+	m_fragments.clear();
 	Draw();
 	g_timer->Stop();
 	m_vp->flush(&m_pixels[m_bufferFlag][0][0][0]);
 	m_bufferFlag = 1-m_bufferFlag;
+	//renderMutex.unlock();
 }
 
 void Context::Draw()
@@ -150,7 +182,7 @@ void Context::FillLine(float xNDC0, float yNDC0, float zNDC0, float xNDC1, float
 
 }
 
-void Context::ScanLine(VSOUT& a, VSOUT& b )
+void Context::ScanLine(VSOUT& a, VSOUT& b, vector<Fragment>& fragments)
 {
 	if(a.ndc.x > b.ndc.x)
 		swap(a, b);
@@ -165,11 +197,14 @@ void Context::ScanLine(VSOUT& a, VSOUT& b )
 
 	for(;x<=x1 && x<fixedViewportX; x++){
 		VSOUT temp = PerspectiveInterp(a, b, (x*2.0/fixedViewportX -1.0 -a.ndc.x)/ NoZero(b.ndc.x - a.ndc.x));
+
+		/*
 		//pre-z
 		if( !DepthTest(x, y, temp.ndc.z) )
 			continue;
 		//Fragment Shading
-		FillPixel(x,y, FragmentShading(PSIN(temp.normaldw * temp.w, temp.uvdw*temp.w, temp.viewPositiondw*temp.w)), temp.ndc.z);
+		FillPixel(x,y, FragmentShading(PSIN(temp.normaldw * temp.w, temp.uvdw*temp.w, temp.viewPositiondw*temp.w)), temp.ndc.z);*/
+		fragments.emplace_back(PSIN(temp.normaldw * temp.w, temp.uvdw*temp.w, temp.viewPositiondw*temp.w), x, y, temp.ndc.z);
 	}
 }
 
@@ -186,13 +221,19 @@ bool Context::DepthTest( int x, int y, float depth )
 	return depth < m_depth[fixedViewportY-1-y][x];
 }
 
-void Context::FillPixel(int x, int y, vec4 color, float depth)
+void Context::FillPixel(int x, int y, vec4 &color, float depth)
 {
-	if( !DepthTest(x,y,depth) )
+	//bufferMutex.lock();
+	if (!DepthTest(x, y, depth))
+	{
+	//	bufferMutex.unlock();
 		return;
+	}
+	m_depth[fixedViewportY - 1 - y][x] = depth;
 	for(int i=0; i<4; i++)
 		m_pixels[m_bufferFlag][fixedViewportY-1-y][x][i]  = FloatToByte(color[i]);
-	m_depth[fixedViewportY-1-y][x] = depth;
+	
+	//bufferMutex.unlock();
 }
 
 vec4 Context::ClampPoint(const vec4 &a, const vec4 & b, const vec4 &p)
@@ -230,37 +271,32 @@ void Context::DrawTriangles()
 	}
 	else
 	{
+		vector<thread> vertexThread(g_scene->m_triangles.size());
 		auto iter = g_scene->m_triangles.begin();
+		unsigned int threadID = 0;
+		m_fragments.resize(g_scene->m_triangles.size());
 		for(; iter!=g_scene->m_triangles.end(); iter++)
 		{
-			m_uniformState.pTexture = g_scene->m_textures[iter->first];
-			m_uniformState.pMaterial = g_scene->m_materials[iter->first];
-			for(int t=0; t<iter->second.size(); t++)
-				DrawTriangle(iter->second.at(t));
+			m_fragments[threadID] = make_pair(Uniform{ g_scene->m_textures[iter->first], g_scene->m_materials[iter->first] }, vector<Fragment>());
+			auto &v = m_fragments[threadID].second;
+			vertexThread[threadID] = thread(VertexProcess, this, std::ref(iter->second), std::ref(v));
+			threadID++;
+		}
+		for (auto &t : vertexThread)
+			t.join();
+
+		for (auto &fragmentsShading : m_fragments)
+		{	
+			for (auto &frag : fragmentsShading.second)
+			{
+				if (DepthTest(frag.x, frag.y, frag.depth))
+					FillPixel(frag.x, frag.y, FragmentProcess(frag.psin, fragmentsShading.first), frag.depth);
+			}
 		}
 	}
 }
 
-PSOUT Context::FragmentShading(PSIN fragment)
-{
-	static vec3 ambientLight(0.3);
-	static float shineness = 100.0;
-
-	vec3 color;
-	fragment.normal.Normalize();
-	if(m_uniformState.pTexture)
-		color = vec3((float*)(&m_uniformState.pTexture->Sample(fragment.uv)));
-	else
-		color = m_uniformState.pMaterial->materialDiffuse;
-	vec3 diffuse = color * max(fragment.normal.Dot(g_scene->sun_dir), 0.0);
-	vec3 ambient = ambientLight  * color;
-	vec3 midRay = ((fragment.viewPosition*-1.0).Normalize() + g_scene->sun_dir).Normalize();
-	// POW is quiet time-costing!
-	vec3 specular  = vec3(pow( float(max(midRay.Dot(fragment.normal), 0.0)), shineness));
-	return vec4(diffuse+ ambient + specular,1.0);
-}
-
-void Context::DrawTriangle( const Triangle& triangle )
+void Context::DrawTriangle(const Triangle& triangle, std::vector<Fragment>& fragments)
 {
 	// BackFace Culling
 	if(m_backFaceCulling && (g_camera->m_position-triangle.v[0].position).Dot(triangle.face_normal) < 0.0 )
@@ -286,21 +322,21 @@ void Context::DrawTriangle( const Triangle& triangle )
 	{
 		verticesPre[0] = Interp(verticesPre[2], verticesPre[0], (g_camera->m_nearZ - verticesPre[2].w) / (verticesPre[0].w - verticesPre[2].w ) );
 		verticesPre[1] = Interp(verticesPre[2], verticesPre[1], (g_camera->m_nearZ - verticesPre[2].w) / (verticesPre[1].w - verticesPre[2].w ) );
-		DrawClippedTriangle(verticesPre);
+		DrawClippedTriangle(verticesPre, fragments);
 	}
 	else if( verticesPre[0].w < g_camera->m_nearZ)
 	{
 		VSOUT v01 = Interp(verticesPre[1], verticesPre[0], (g_camera->m_nearZ - verticesPre[1].w) / (verticesPre[0].w - verticesPre[1].w ) );
 		VSOUT v02 = Interp(verticesPre[2], verticesPre[0], (g_camera->m_nearZ - verticesPre[2].w) / (verticesPre[0].w - verticesPre[2].w ) );
 		verticesPre[0] = v01;
-		DrawClippedTriangle(verticesPre);
+		DrawClippedTriangle(verticesPre, fragments);
 		verticesPre[1] = v02;
-		DrawClippedTriangle(verticesPre);
+		DrawClippedTriangle(verticesPre, fragments);
 	}
 	else
-		DrawClippedTriangle(verticesPre);
+		DrawClippedTriangle(verticesPre, fragments);
 }
-void Context::DrawClippedTriangle( std::vector<VSOUT> vertices )
+void Context::DrawClippedTriangle(std::vector<VSOUT> vertices, std::vector<Fragment>& fragments)
 {
 	for(int i=0; i<3; i++)
 	{
@@ -313,13 +349,13 @@ void Context::DrawClippedTriangle( std::vector<VSOUT> vertices )
 		return;
 	vector<VSOUT> verticesTop = vertices;
 	verticesTop[2] = PerspectiveInterp(vertices[0], vertices[2], (vertices[1].ndc.y-vertices[0].ndc.y)/(vertices[2].ndc.y-vertices[0].ndc.y));
-	DrawFlatTriangle(verticesTop, 1);
+	DrawFlatTriangle(verticesTop, 1, fragments);
 
 	vector<VSOUT> &verticesBottom = verticesTop;
 	verticesBottom[0] = vertices[2];
-	DrawFlatTriangle(verticesBottom, -1);
+	DrawFlatTriangle(verticesBottom, -1, fragments);
 }
-void Context::DrawFlatTriangle( const std::vector<VSOUT> &triangle, int dir)
+void Context::DrawFlatTriangle(const std::vector<VSOUT> &triangle, int dir, std::vector<Fragment>& fragments)
 {
 	//TODO:: precision details
 	if(triangle[1].ndc.y - triangle[0].ndc.y == 0.0)
@@ -338,7 +374,7 @@ void Context::DrawFlatTriangle( const std::vector<VSOUT> &triangle, int dir)
 		{
 			VSOUT a = PerspectiveInterp(triangle[0], triangle[1], t);
 			VSOUT b = PerspectiveInterp(triangle[0], triangle[2], t);
-			ScanLine(a,b);
+			ScanLine(a,b, fragments);
 		}
 		if(y0 == screenC[1].y)
 			return;
