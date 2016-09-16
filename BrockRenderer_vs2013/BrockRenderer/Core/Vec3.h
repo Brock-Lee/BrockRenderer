@@ -36,14 +36,8 @@ public:
     }
 
 
-    /**
-    * @brief normalize the vector so it has a magnitude of 1
-    * @note same with Normalize()
-    * @return
-    */
     _TVector3 Normalize()
     {
-        // T fLength = sqrt( x * x + y * y + z * z );
 		T fLength = GetLength();
         // Will also work for zero-sized vectors, but will change nothing
         if ( fLength > 1e-06 )
@@ -89,10 +83,6 @@ public:
         z += vec.z;
     }
 
-    /**
-    * @brief subtract vector from stored vector
-    * @param vec
-    */
     void operator -= (const _TVector3& vec)
     {
         x -= vec.x;
@@ -100,20 +90,11 @@ public:
         z -= vec.z;
     }
 
-    /**
-    * @brief negate the vector
-    * @return
-    */
     _TVector3 operator-() const
     {
         return( _TVector3(-x, -y, -z) );
     }
 
-    /**
-    * @brief Scalar multiplication
-    * @param fScalar
-    * @return
-    */
     _TVector3 operator *  (const T fScalar) const
     {
         return( _TVector3(
@@ -122,11 +103,6 @@ public:
                     ( z * fScalar )));
     }
 
-    /**
-    * @brief Scalar division
-    * @param fScalar
-    * @return
-    */
     _TVector3 operator /  (const T fScalar) const
     {
         T fInvScale = T(1.0f / fScalar);
@@ -137,10 +113,6 @@ public:
                     ( z * fInvScale )));
     }
 
-    /**
-    * @brief Multiply the stored vector by a scalar
-    * @param fScalar
-    */
     void operator *= (const T fScalar)
     {
         x *= fScalar;
@@ -155,10 +127,6 @@ public:
         z *= vec.z;
     }
 
-    /**
-    * @brief Divide the stored vector by a scalar
-    * @param fScalar
-    */
     void operator /= (const T fScalar)
     {
         T fInvScale = 1 / fScalar;
@@ -168,11 +136,6 @@ public:
         z *= fInvScale;
     }
 
-    /**
-    * @brief Set the stored vector equal to another
-    * @param vec
-    * @return
-    */
     template <class T2>
     _TVector3<T> operator =  (const _TVector3<T2>& vec)
     {
@@ -182,11 +145,6 @@ public:
         return *(this);
     }
 
-    /**
-    * @brief See if the stored vector and another are equal
-    * @param vec
-    * @return
-    */
     const bool operator == (const _TVector3& vec)  const
     {
         return (
@@ -195,17 +153,11 @@ public:
                     (z == vec.z));
     }
 
-    /**
-    * @brief See if the stored vector and another are not equal
-    * @param vec
-    * @return
-    */
     const bool	operator != (const _TVector3& vec)  const
     {
         return (!(*this == vec));
     }
 
-    /*************************ZONGNING ADD **********************************/
 
     _TVector3 operator *  (const _TVector3& rhs) const
     {
@@ -240,11 +192,6 @@ public:
         return std::sqrt(x * x + y * y + z * z);
     }
 
-    /**
-    * @brief calculate the dot product
-    * @param vec
-    * @return
-    */
     T Dot(const _TVector3& vec) const
 	{
 		return( (vec.x * x) + (vec.y * y) + (vec.z * z) );

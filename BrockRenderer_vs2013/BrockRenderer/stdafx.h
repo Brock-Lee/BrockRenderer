@@ -1,5 +1,4 @@
-#ifndef COMM_PCH_H
-#define COMM_PCH_H
+#pragma once
 
 // Common C-stuff.
 #include <cstdio>
@@ -12,11 +11,9 @@
 #include <ctime>
 #include <climits>
 
-// SSE
-#include <smmintrin.h>
-
 // Common C++ stuff.
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -30,7 +27,8 @@
 #include <functional>
 #include <cmath>
 #include <math.h> 
-#include "memory"
+#include <memory>
+#include <mutex>
 
 #include <Windows.h>
 
@@ -41,18 +39,11 @@
 #include "Core/Mat4.h"
 #include "Core/Triangle.h"
 #include "Core/Timer.h"
-#include "Window/WinBase.h"
-#include "Window/WinApp.h"
 #include "Window/events.h"
+#include "Window/WinApp.h"
 #include "Scene/Scene.h"
 #include "Scene/Camera.h"
 #include "Renderer/Texture.h"
 #include "Renderer/ShadingData.h"
 #include "Renderer/Context.h"
 
-
-
-
-
-
-#endif

@@ -93,11 +93,6 @@ public:
         y = static_cast<T>(vec[1]);
     }
 
-    /**
-    * @brief See if the stored vector and another are equal
-    * @param vec
-    * @return
-    */
     const bool	operator == (const _TVector2& vec)  const
     {
         return (
@@ -105,11 +100,6 @@ public:
                     (y == vec.y));
     }
 
-    /**
-    * @brief See if the stored vector and another are not equal
-    * @param vec
-    * @return
-    */
     const bool	operator != (const _TVector2& vec)  const
     {
         return (!(*this == vec));

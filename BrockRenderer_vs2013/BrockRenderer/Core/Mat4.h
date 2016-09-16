@@ -170,23 +170,17 @@ _TVector4<T> operator*( const _TVector4<T> &v , const _TMat4<T> & m)
 }
 
 template <typename T>
-_TVector3<T> operator*( const _TVector3<T> &b , const _TMat4<T> & m)
+_TVector3<T> operator*(const _TVector3<T> &b, const _TMat4<T> & m)
 {
 	T res[4];  // result 4-vector
 
-	res[0] = v.x * m.m[0][0] + v.y * m.m[1][0] + v.z * m.m[2][0] + /*1.0 * */m.m[3][0];
-	res[1] = v.x * m.m[0][1] + v.y * m.m[1][1] + v.z * m.m[2][1] + /*1.0 * */m.m[3][1];
-	res[2] = v.x * m.m[0][2] + v.y * m.m[1][2] + v.z * m.m[2][2] + /*1.0 * */m.m[3][2];
-	res[3] = v.x * m.m[0][3] + v.y * m.m[1][3] + v.z * m.m[2][3] + /*1.0 * */m.m[3][3];
-
-	if (fabs(res[3] - 1.0) < 0.00000001/*std::numeric_limits<float>::epsilon()*/)   // equals to 1.0
-	{
-		return _TVector3<T>(res[0], res[1], res[2]);
-	}
-	else
-	{
-		return _TVector3<T>(res[0] / res[3], res[1] / res[3], res[2] / res[3]);
-	}
+	res[0] = v.x * m.m[0][0] + v.y * m.m[1][0] + v.z * m.m[2][0] + m.m[3][0];
+	res[1] = v.x * m.m[0][1] + v.y * m.m[1][1] + v.z * m.m[2][1] + m.m[3][1];
+	res[2] = v.x * m.m[0][2] + v.y * m.m[1][2] + v.z * m.m[2][2] + m.m[3][2];
+	res[3] = v.x * m.m[0][3] + v.y * m.m[1][3] + v.z * m.m[2][3] + m.m[3][3];
+	if (res[3] == 0.0)
+		res[3] = std::numeric_limits<T>::epsilon;
+	return _TVector3<T>(res[0] / res[3], res[1] / res[3], res[2] / res[3]);
 }
 
 

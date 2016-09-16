@@ -55,14 +55,8 @@ public:
         return m_fVec;
     }
 
-    /**
-    * @brief normalize the vector so it has a magnitude of 1
-    * @note same with Normalize()
-    * @return
-    */
     _TVector4 Normalize()
     {
-        // T fLength = sqrt( x * x + y * y + z * z );
 		T fLength = GetLength();
         // Will also work for zero-sized vectors, but will change nothing
         if ( fLength > 1e-06 )
@@ -82,12 +76,6 @@ public:
         return val[iIdx];
     }
 
-
-    /**
-    * @brief add vector
-    * @param vec
-    * @return
-    */
     _TVector4 operator+ (const _TVector4& vec) const
     {
         return( _TVector4(
@@ -97,11 +85,6 @@ public:
 					( vec.w + w)));
     }
 
-    /**
-    * @brief subtract vector
-    * @param vec
-    * @return
-    */
     _TVector4 operator- (const _TVector4& vec) const
     {
         return( _TVector4(
@@ -111,10 +94,6 @@ public:
 					( w - vec.w)));
     }
 
-    /**
-    * @brief add vector to stored vector
-    * @param vec
-    */
     void operator += (const _TVector4& vec)
     {
         x += vec.x;
@@ -123,10 +102,6 @@ public:
 		w += vec.w;
     }
 
-    /**
-    * @brief subtract vector from stored vector
-    * @param vec
-    */
     void operator -= (const _TVector4& vec)
     {
         x -= vec.x;
@@ -135,20 +110,11 @@ public:
 		w -= vec.w;
     }
 
-    /**
-    * @brief negate the vector
-    * @return
-    */
     _TVector4 operator-() const
     {
         return( _TVector4(-x, -y, -z, -w) );
     }
 
-    /**
-    * @brief Scalar multiplication
-    * @param fScalar
-    * @return
-    */
     _TVector4 operator *  (const T fScalar) const
     {
         return( _TVector4(
@@ -158,11 +124,7 @@ public:
 					( w * fScalar )));
     }
 
-    /**
-    * @brief Scalar division
-    * @param fScalar
-    * @return
-    */
+
     _TVector4 operator /  (const T fScalar) const
     {
         T fInvScale = T(1.0f / fScalar);
@@ -174,10 +136,6 @@ public:
 					( w * fInvScale )));
     }
 
-    /**
-    * @brief Multiply the stored vector by a scalar
-    * @param fScalar
-    */
     void operator *= (const T fScalar)
     {
         x *= fScalar;
@@ -194,10 +152,6 @@ public:
 		w *= vec.w;
     }
 
-    /**
-    * @brief Divide the stored vector by a scalar
-    * @param fScalar
-    */
     void operator /= (const T fScalar)
     {
         T fInvScale = 1 / fScalar;
@@ -208,11 +162,6 @@ public:
 		w *= fInvScale;
     }
 
-    /**
-    * @brief Set the stored vector equal to another
-    * @param vec
-    * @return
-    */
     template <class T2>
     _TVector4<T> operator =  (const _TVector4<T2>& vec)
     {
@@ -231,11 +180,7 @@ public:
 		z = static_cast<T>(vec.z);
 		return *(this);
 	}
-    /**
-    * @brief See if the stored vector and another are equal
-    * @param vec
-    * @return
-    */
+
     const bool operator == (const _TVector4& vec)  const
     {
         return (
@@ -245,17 +190,10 @@ public:
 					(w == vec.w));
     }
 
-    /**
-    * @brief See if the stored vector and another are not equal
-    * @param vec
-    * @return
-    */
     const bool	operator != (const _TVector4& vec)  const
     {
         return (!(*this == vec));
     }
-
-    /*************************ZONGNING ADD **********************************/
 
     _TVector4 operator *  (const _TVector4& rhs) const
     {
@@ -282,17 +220,10 @@ public:
         return T(sqrt(1.0 * (x * x + y * y + z * z + w * w)));
     }
 
-    /**
-    * @brief calculate the dot product
-    * @param vec
-    * @return
-    */
     T Dot(const _TVector4& vec) const
     {
         return( (vec.x * x) + (vec.y * y) + (vec.z * z) + vec.w * w);
     }
-
-    ///below methord added by lxh 2008.05.05
  
     T Distance( const _TVector4& vec ) const
     {

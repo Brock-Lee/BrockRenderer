@@ -55,9 +55,6 @@
     <ClInclude Include="stdafx.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Window\WinBase.h">
-      <Filter>Window\Header</Filter>
-    </ClInclude>
     <ClInclude Include="Window\WinApp.h">
       <Filter>Window\Header</Filter>
     </ClInclude>
@@ -107,9 +104,6 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Window\WinBase.cpp">
-      <Filter>Window\Source</Filter>
     </ClCompile>
     <ClCompile Include="Window\WinApp.cpp">
       <Filter>Window\Source</Filter>

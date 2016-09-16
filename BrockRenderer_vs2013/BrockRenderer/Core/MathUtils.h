@@ -40,9 +40,6 @@ const int RIGHT = 2;  // 0010
 const int BOTTOM = 4; // 0100
 const int TOP = 8;    // 1000
 
-// Compute the bit code for a point (x, y) using the clip rectangle
-// bounded diagonally by (xmin, ymin), and (xmax, ymax)
-
 inline OutCode ComputeOutCode(float x, float y, float xmin=-1, float xmax=1, float ymin=-1, float ymax=1)
 {
 	OutCode code;

@@ -12,8 +12,8 @@ namespace{
 	}
 	vec4 FragmentProcess(PSIN &fragment, const Uniform &uniformState)
 	{
-		static vec3 ambientLight(0.3);
-		static float shineness = 100.0;
+		static const vec3 ambientLight(0.3);
+		static const float shineness = 100.0;
 
 		vec3 color;
 		fragment.normal.Normalize();
@@ -24,12 +24,26 @@ namespace{
 		vec3 diffuse = color * max(fragment.normal.Dot(g_scene->sun_dir), 0.0);
 		vec3 ambient = ambientLight  * color;
 		vec3 midRay = ((fragment.viewPosition*-1.0).Normalize() + g_scene->sun_dir).Normalize();
-		// POW is quiet time-costing!
 		vec3 specular(0.0);
 		float cosTheta = max(midRay.Dot(fragment.normal), 0.0);
-		if (cosTheta > 0.90)  // reduce some pow cost
+		if (cosTheta > 0.90)  // reduce some pow time-cost
 			specular = vec3(pow(cosTheta, shineness));
 		return vec4(diffuse + ambient + specular, 1.0);
+	}
+	LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
+	{
+		if (msg == WM_CREATE)
+		{
+		}
+		else
+		{
+			if (msg == WM_DESTROY)
+			{
+			}
+			return WinApp::Instance()->handleMessage(hwnd, msg, wp, lp);
+		}
+
+		return DefWindowProc(hwnd, msg, wp, lp);
 	}
 }
 Context::Context():m_lineMode(false),m_bufferFlag(0),m_backFaceCulling(true)
@@ -38,20 +52,110 @@ Context::Context():m_lineMode(false),m_bufferFlag(0),m_backFaceCulling(true)
 	for(int i=0; i<fixedViewportY; i++)
 		for(int j=0; j<fixedViewportX; j++)
 			m_depth[i][j] = 1.0;
-	m_vp = new Window::WindowsViewport( fixedViewportX, fixedViewportY);
+
+
+	const TCHAR *className = TEXT("wc.MainWindow");
+
+	WNDCLASSEX wcex;
+	memset(&wcex, 0, sizeof(WNDCLASSEX));
+
+	wcex.cbSize = sizeof(WNDCLASSEX);
+	wcex.style = CS_HREDRAW | CS_VREDRAW;
+	wcex.cbClsExtra = 0;
+	wcex.cbWndExtra = 0;
+	wcex.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wcex.lpszMenuName = 0;
+	wcex.lpszClassName = className;
+	wcex.hIcon = 0;
+	wcex.hIconSm = 0;
+	wcex.hCursor = (HCURSOR)LoadCursor(0, IDC_ARROW);
+	wcex.hInstance = GetModuleHandle(0);
+	wcex.lpfnWndProc = (WNDPROC)WndProc;
+
+	RegisterClassEx(&wcex);
+
+	RECT viewportRect;
+	viewportRect.left = 0;
+	viewportRect.top = 0;
+	viewportRect.right = fixedViewportX;
+	viewportRect.bottom = fixedViewportY;
+
+	AdjustWindowRect(&viewportRect, WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX, false);
+
+	HDC desktopDC = GetDC(GetDesktopWindow());
+	int screenWidth = GetDeviceCaps(desktopDC, HORZRES);
+	int screenHeight = GetDeviceCaps(desktopDC, VERTRES);
+	ReleaseDC(GetDesktopWindow(), desktopDC);
+
+	m_hWnd = CreateWindowEx(0, className, L"Main window", WS_POPUPWINDOW | WS_CAPTION | WS_MINIMIZEBOX,
+		screenWidth / 2 - fixedViewportX / 2, screenHeight / 2 - fixedViewportY / 2,
+		viewportRect.right - viewportRect.left + 1,
+		viewportRect.bottom - viewportRect.top + 1,
+		0, 0, GetModuleHandle(0), nullptr);
+
+	if (!m_hWnd)
+	{
+		DWORD e = GetLastError();
+		std::ofstream LOG("error.log");
+		LOG << e;
+		LOG.close();
+		UnregisterClass(className, GetModuleHandle(0));
+	}
+
+
+	m_hDC = GetDC(m_hWnd);
+
+	ShowWindow(m_hWnd, SW_SHOW);
+
+}
+void Context::SwapBuffer()
+{
+	m_bufferFlag = 1 - m_bufferFlag;
 }
 
-void Context::Render()
+void Context::Flush()
 {
-	//renderMutex.lock();
-	g_timer->Start();
-	Clear();			
-	m_fragments.clear();
-	Draw();
-	g_timer->Stop();
-	m_vp->flush(&m_pixels[m_bufferFlag][0][0][0]);
-	m_bufferFlag = 1-m_bufferFlag;
-	//renderMutex.unlock();
+	if (!m_hDC)
+		return;
+
+	static BITMAPINFO bmi;
+	memset(&bmi, 0, sizeof(bmi));
+	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmi.bmiHeader.biWidth = fixedViewportX;
+	bmi.bmiHeader.biHeight = -fixedViewportY;
+	bmi.bmiHeader.biPlanes = 1;
+	bmi.bmiHeader.biBitCount = 32;
+	bmi.bmiHeader.biCompression = BI_RGB;
+	bmi.bmiHeader.biSizeImage = 0;
+
+	static const int textHeight = 10;
+	SetDIBitsToDevice(m_hDC,
+		0, 0,
+		fixedViewportX, fixedViewportY + textHeight,
+		0, 0,
+		0, fixedViewportY - textHeight,
+		m_pixels,
+		&bmi,
+		DIB_RGB_COLORS);
+
+	//Text output
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(2) << g_timer->Elapse();
+	std::string timeCost;
+	ss >> timeCost;
+	timeCost += "ms/Frame";
+
+	ss.clear();
+	ss << g_scene->m_triangleCount;
+	std::string triangleCntStr;
+	ss >> triangleCntStr;
+	triangleCntStr += " Triangles";
+
+	const std::string controlStr = "UP:q  Down:e  Left:a  right:d  Forward:w  Backward:s  Rotate: L-Button Drag&Move  Line/Fill: f  ";
+	std::string allStr = timeCost + "    " + triangleCntStr + "    " + controlStr;
+	WCHAR w_str[200];
+	MultiByteToWideChar(CP_ACP, 0, allStr.c_str(), -1, w_str, allStr.size());
+	TextOut(m_hDC, 0, 0, w_str, allStr.size());
 }
 
 void Context::Draw()
@@ -107,7 +211,7 @@ void Context::DrawLine(const vec3 &a, const vec3 &b)
 			// At least one endpoint is outside the clip rectangle; pick it.
 			OutCode outcodeOut = outcode0 ? outcode0 : outcode1;
 
-			// Now find the intersection point;
+			// find the intersection point;
 			// use formulas y = y0 + slope * (x - x0), x = x0 + (1 / slope) * (y - y0)
 			if (outcodeOut & TOP) {           // point is above the clip rectangle
 				x = x0 + (x1 - x0) * (1 - y0) / (y1 - y0);
@@ -123,7 +227,7 @@ void Context::DrawLine(const vec3 &a, const vec3 &b)
 				x = -1;
 			}
 
-			// Now we move outside point to intersection point to clip
+			// move outside point to intersection point to clip
 			// and get ready for next pass.
 			if (outcodeOut == outcode0) {
 				x0 = x;
@@ -190,8 +294,8 @@ void Context::ScanLine(VSOUT& a, VSOUT& b, vector<Fragment>& fragments)
 		return;
 
 	int y = std::floor((a.ndc.y+1.0)/2.0 * fixedViewportY);
-	int x0 = std::floor((a.ndc.x+1.0)/2.0 * fixedViewportY);
-	int x1 = std::floor((b.ndc.x+1.0)/2.0 * fixedViewportY);
+	int x0 = std::floor((a.ndc.x+1.0)/2.0 * fixedViewportX);
+	int x1 = std::floor((b.ndc.x+1.0)/2.0 * fixedViewportX);
 
 	int x= max(int(0), x0);
 
@@ -293,6 +397,8 @@ void Context::DrawTriangles()
 					FillPixel(frag.x, frag.y, FragmentProcess(frag.psin, fragmentsShading.first), frag.depth);
 			}
 		}
+
+		m_fragments.clear();
 	}
 }
 
@@ -385,4 +491,11 @@ void Context::DrawFlatTriangle(const std::vector<VSOUT> &triangle, int dir, std:
 }
 
 
+Context::~Context()
+{
+	if (m_hDC)
+		ReleaseDC(m_hWnd, m_hDC);
 
+	if (m_hWnd)
+		DestroyWindow(m_hWnd);
+}

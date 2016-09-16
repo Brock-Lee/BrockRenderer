@@ -24,7 +24,6 @@
     <ClInclude Include="Scene\Camera.h" />
     <ClInclude Include="Scene\Scene.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Window\WinBase.h" />
     <ClInclude Include="Window\WinApp.h" />
     <ClInclude Include="Window\events.h" />
   </ItemGroup>
@@ -35,7 +34,6 @@
     <ClCompile Include="Scene\Camera.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
     <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="Window\WinBase.cpp" />
     <ClCompile Include="Window\WinApp.cpp" />
     <ClCompile Include="Window\events.cpp" />
   </ItemGroup>
