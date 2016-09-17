@@ -5,7 +5,7 @@ using namespace std;
 Context* g_context;
 Timer* g_timer;
 namespace{
-	void VertexProcess(Context *context, const vector<Triangle>& triangles, std::vector<Fragment> &fragments)
+	void VertexProcessAndRasterize(Context *context, const vector<Triangle>& triangles, std::vector<Fragment> &fragments)
 	{
 		for (auto &t : triangles)
 			context->DrawTriangle(t, fragments);
@@ -46,7 +46,7 @@ namespace{
 		return DefWindowProc(hwnd, msg, wp, lp);
 	}
 }
-Context::Context():m_lineMode(false),m_bufferFlag(0),m_backFaceCulling(true)
+Context::Context() :m_lineMode(false), m_bufferFlag(0), m_backFaceCulling(true), m_preZTest(true)
 {
 	memset(m_pixels, 0, sizeof(m_pixels));
 	for(int i=0; i<fixedViewportY; i++)
@@ -383,7 +383,7 @@ void Context::DrawTriangles()
 		{
 			m_fragments[threadID] = make_pair(Uniform{ g_scene->m_textures[iter->first], g_scene->m_materials[iter->first] }, vector<Fragment>());
 			auto &v = m_fragments[threadID].second;
-			vertexThread[threadID] = thread(VertexProcess, this, std::ref(iter->second), std::ref(v));
+			vertexThread[threadID] = thread(VertexProcessAndRasterize, this, std::ref(iter->second), std::ref(v));
 			threadID++;
 		}
 		for (auto &t : vertexThread)
@@ -393,7 +393,7 @@ void Context::DrawTriangles()
 		{	
 			for (auto &frag : fragmentsShading.second)
 			{
-				if (DepthTest(frag.x, frag.y, frag.depth))
+				if (m_preZTest && DepthTest(frag.x, frag.y, frag.depth))  // pre-Z
 					FillPixel(frag.x, frag.y, FragmentProcess(frag.psin, fragmentsShading.first), frag.depth);
 			}
 		}

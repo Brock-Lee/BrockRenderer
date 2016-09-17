@@ -8,7 +8,7 @@ public:
 	unsigned char m_pixels[2][fixedViewportY][fixedViewportX][4];
 	bool m_lineMode;
 	bool m_backFaceCulling;
-	
+	bool m_preZTest;
 	void DrawTriangle(const Triangle& triangle, std::vector<Fragment>& fragments);
 	void FillPixel(int x, int y, vec4 &color, float depth);
 	bool DepthTest(int x, int y, float depth);
