@@ -1,7 +1,7 @@
 # BrockRenderer
-This is a software rasterization renderer, developped by Brock.
-The main purpose of this project is to simulate the Modern GPU pipeline on CPU.
-The latest version includes features such as:
+This is a software rasterization renderer, developed by Brock.
+The main purpose of this project is to simulate the modern GPU pipeline on CPU.
+The latest version includes following features:
 
 1. Multi-threaded vertex processing.
 
