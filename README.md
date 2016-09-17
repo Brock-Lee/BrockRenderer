@@ -7,7 +7,7 @@ The latest version includes following features:
 
 2. Near plane and backface triangle clipping.
 
-3. Gouraud shading with Blin-Phong lighting.
+3. Gouraud shading with Blinn-Phong lighting.
 
 4. Perspective correct texture mapping.
 
