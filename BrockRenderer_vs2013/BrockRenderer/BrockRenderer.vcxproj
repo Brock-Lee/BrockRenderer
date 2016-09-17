@@ -28,7 +28,7 @@
     <ClInclude Include="Window\events.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="App\main.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="Renderer\Context.cpp" />
     <ClCompile Include="Renderer\Texture.cpp" />
     <ClCompile Include="Scene\Camera.cpp" />

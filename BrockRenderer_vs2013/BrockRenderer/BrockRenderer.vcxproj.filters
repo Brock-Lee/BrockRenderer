@@ -14,9 +14,6 @@
     <Filter Include="Window\Source">
       <UniqueIdentifier>{a1d6465b-3b13-420c-9bfc-dfb0243319aa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="App">
-      <UniqueIdentifier>{55e8c5a0-c01d-4bd9-88b0-567c2507015b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{a1a618d6-99a2-417c-9983-9ee30b8594d0}</UniqueIdentifier>
     </Filter>
@@ -99,9 +96,6 @@
     <ClCompile Include="Window\events.cpp">
       <Filter>Window\Source</Filter>
     </ClCompile>
-    <ClCompile Include="App\main.cpp">
-      <Filter>App</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -119,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="Renderer\Texture.cpp">
       <Filter>Renderer\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
